@@ -6,6 +6,7 @@ import {
   TrickCard,
 } from "@/types/types";
 import { trickCards } from "@/types/tricks";
+import { toast } from "sonner";
 
 type TurnPhase = "leader" | "follower";
 
@@ -208,14 +209,16 @@ export class TurnManager {
     if (activePlayers[nextIndex].id === leader.id) {
       this.state.turnPhase = "leader";
       this.state.currentFollowerId = null;
-      
+
       // Draw a new card for the leader's next attempt
       this.state.currentCard = this.drawCard();
-      
+
       // If leader has completed 3 successful tricks, pass leadership
       if (leader.streak >= 3) {
         leader.streak = 0;
         onPassLeadership();
+        // toast
+        toast("Max 3 tricks reached! Passing leadership");
       }
     } else {
       // Next follower attempts the same trick

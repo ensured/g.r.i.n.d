@@ -28,6 +28,7 @@ export type GameState = {
   currentLeaderId: number; // ID of the current leader
   currentFollowerId: number | null; // ID of the current follower (if any)
   winner?: Player | null; // The winning player when the game is over
+  activePlayers: number; // Number of active (non-eliminated) players
 };
 
 export type AttemptResult = "landed" | "failed";
