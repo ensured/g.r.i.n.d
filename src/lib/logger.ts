@@ -2,7 +2,10 @@
 const browserLogs: string[] = [];
 const MAX_BROWSER_LOGS = 100;
 
-const formatLogMessage = (message: string, data?: any): string => {
+// Define a type for the log data that can be any JSON-serializable value
+type LoggableData = string | number | boolean | null | undefined | object | Array<unknown>;
+
+const formatLogMessage = (message: string, data?: LoggableData): string => {
   const timestamp = new Date().toISOString();
   let logMessage = `[${timestamp}] ${message}`;
   
@@ -15,7 +18,8 @@ const formatLogMessage = (message: string, data?: any): string => {
         }
         return value;
       }, 2);
-    } catch (e) {
+    } catch (error) {
+      console.error('Failed to stringify log data:', error);
       logMessage += ' [Error stringifying data]';
     }
   }
@@ -24,7 +28,7 @@ const formatLogMessage = (message: string, data?: any): string => {
 };
 
 export class GameLogger {
-  static log(message: string, data?: any) {
+  static log(message: string, data?: LoggableData) {
     const logMessage = formatLogMessage(message, data);
     
     // Always log to console
@@ -38,7 +42,8 @@ export class GameLogger {
     }
   }
 
-  static logGameState(state: any) {
+  // Define a more specific type for the game state
+  static logGameState(state: { deck?: unknown[]; currentCard?: { name?: string }; [key: string]: unknown } | null | undefined) {
     if (!state) {
       this.log('Game State Update: No state provided');
       return;
@@ -52,11 +57,12 @@ export class GameLogger {
     });
   }
 
-  static logTurn(turn: any) {
+  // Define a more specific type for the turn object
+  static logTurn(turn: Record<string, unknown>) {
     this.log('Turn Processed', turn);
   }
 
-  static logError(error: any) {
+  static logError(error: unknown) {
     const errorMessage = error instanceof Error 
       ? error.stack || error.message 
       : typeof error === 'object' 

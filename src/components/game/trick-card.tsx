@@ -53,7 +53,6 @@ export function TrickCard({
   const isMobile = useMediaQuery('(max-width: 640px)');
   const playerNameSize = isMobile ? 'text-4xl' : 'text-5xl';
   const cardPadding = isMobile ? 'p-3' : 'p-4 sm:p-6';
-  const trickNameSize = isMobile ? 'text-2xl' : 'text-3xl';
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -145,7 +144,7 @@ export function TrickCard({
             <div className="space-y-3">
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
+                  <TooltipTrigger asChild className="cursor-pointer">
                     <Button
                       variant="ghost"
                       size="lg"

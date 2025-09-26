@@ -1,10 +1,4 @@
-import {
-  GameState,
-  Player,
-  Turn,
-  AttemptResult,
-  TrickCard,
-} from "@/types/types";
+import { Player, Turn, AttemptResult, TrickCard } from "@/types/types";
 import { trickCards } from "@/types/tricks";
 import { toast } from "sonner";
 

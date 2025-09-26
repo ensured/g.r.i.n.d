@@ -1,13 +1,4 @@
-import { ReactNode } from 'react';
 import { Crown } from "lucide-react";
-import { motion } from 'framer-motion';
-
-
-interface GameRule {
-  text: string;
-  icon?: ReactNode;
-  highlight?: string;
-}
 
 interface GameRulesListProps {
   className?: string;

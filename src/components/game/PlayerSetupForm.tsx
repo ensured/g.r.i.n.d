@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { PlayerInput } from "@/components/game/player-input";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { GAME_SETTINGS } from "@/constants";
 
 interface PlayerSetupFormProps {
@@ -17,7 +17,7 @@ interface PlayerSetupFormProps {
 }
 
 export function PlayerSetupForm({
-  initialPlayers = [],
+  initialPlayers: initialPlayersProp = [],
   onPlayerNameChange = () => { },
   onRemovePlayer = () => { },
   onAddPlayer = () => { },
@@ -27,8 +27,8 @@ export function PlayerSetupForm({
   validPlayerCount = false,
 }: PlayerSetupFormProps) {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-  if (!initialPlayers) return null;
-  const previousPlayerCount = useRef(initialPlayers.length);
+  const previousPlayerCount = useRef(initialPlayersProp?.length || 0);
+  const initialPlayers = useMemo(() => initialPlayersProp || [], [initialPlayersProp]);
 
   // Focus the first input on initial mount
   useEffect(() => {
@@ -42,7 +42,7 @@ export function PlayerSetupForm({
 
   // Focus new input when a player is added
   useEffect(() => {
-    if (initialPlayers && initialPlayers.length > previousPlayerCount.current) {
+    if (initialPlayers.length > previousPlayerCount.current) {
       const lastIndex = initialPlayers.length - 1;
       const input = inputRefs.current[lastIndex];
       if (input) {
@@ -51,10 +51,10 @@ export function PlayerSetupForm({
         input.setSelectionRange(0, length);
       }
     }
-    if (initialPlayers) {
-      previousPlayerCount.current = initialPlayers.length;
-    }
-  }, [initialPlayers, initialPlayers?.length]);
+    previousPlayerCount.current = initialPlayers.length;
+  }, [initialPlayers, initialPlayers.length]);
+  
+  if (!initialPlayers) return null;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-foreground p-4 gap-6">
       <motion.div

@@ -44,8 +44,12 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
             </span>
           )}
         </div>
+        {isLeader && player.streak > 0 && (
+          <div className="text-xs text-muted-foreground">
+            {player.streak}/3 {player.streak > 0 ? "🔥" : ""}
+          </div>
+        )}
         <div className="flex items-center gap-1">
-
           {/* <span
             className={cn(
               'font-mono font-bold',
@@ -59,11 +63,7 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
 
       {/* Player's collected letters and streak */}
       <div className="flex items-center gap-1 mt-2">
-        {isLeader && (
-          <div className="text-xs text-muted-foreground">
-            {player.streak}/3 {player.streak > 0 ? "🔥" : ""}
-          </div>
-        )}
+
         {player.letters.map((letter, idx) => (
           <div
             key={idx}

@@ -1,4 +1,4 @@
-import { GameState, Player, AttemptResult, Turn } from "@/types/types";
+import { GameState, Player, AttemptResult, TurnPhase } from "@/types/types";
 import { TurnManager } from "./TurnManager";
 import { PlayerManager } from "./PlayerManager";
 import { trickCards } from "@/types/tricks";
@@ -108,7 +108,7 @@ export class Game {
     this.turnManager = new TurnManager({
       currentLeaderId: initialState.currentLeaderId || 0,
       currentFollowerId: initialState.currentFollowerId || null,
-      turnPhase: (initialState.turnPhase as any) || "leader",
+      turnPhase: (initialState.turnPhase as TurnPhase) || "leader",
       currentCard: initialState.currentCard || null,
       deck: [...trickCards],
       turns: initialState.turns || [],
@@ -220,16 +220,6 @@ export class Game {
       : players.find((p: Player) => p.id === turnState.currentFollowerId);
 
     if (!currentPlayer) return;
-
-    // Create and record the turn
-    const turn: Turn = {
-      playerId: currentPlayer.id,
-      playerName: currentPlayer.name,
-      card: turnState.currentCard,
-      result: attemptResult,
-      timestamp: Date.now(),
-      turnType: isLeader ? "leader" : "follower",
-    };
 
     // Process the turn based on player type
     if (isLeader) {
