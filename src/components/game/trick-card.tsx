@@ -1,16 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
-import { Crown, Sparkles } from 'lucide-react';
+import { Crown, Info } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, useState } from 'react';
 import type { GameState, Player } from '@/types/types';
 import { difficultyColors } from '@/types/tricks';
-
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 interface TrickCardProps {
   gameState: GameState;
-  currentPlayer: Player;
+  currentPlayer: Player | null;
   children?: React.ReactNode;
   className?: string;
 }
@@ -47,10 +48,10 @@ export function TrickCard({
 
   const difficultyClasses = trick ? getDifficultyClasses(trick.difficulty) : getDifficultyClasses('');
   const isLeadersTurn = gameState.turnPhase === 'leader';
-  const currentPlayerName = currentPlayer.name;
+  const currentPlayerName = currentPlayer?.name;
 
   const isMobile = useMediaQuery('(max-width: 640px)');
-  const playerNameSize = isMobile ? 'text-3xl' : 'text-4xl';
+  const playerNameSize = isMobile ? 'text-4xl' : 'text-5xl';
   const cardPadding = isMobile ? 'p-3' : 'p-4 sm:p-6';
   const trickNameSize = isMobile ? 'text-2xl' : 'text-3xl';
   const [open, setOpen] = useState(false);
@@ -93,9 +94,9 @@ export function TrickCard({
                       "font-bold text-center tracking-tight inline-flex items-center gap-2",
                       playerNameSize,
                       isLeadersTurn
-                        ? 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-md'
-                        : 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-md',
-                      "font-display"
+                        ? ''
+                        : '',
+                      "font-display "
                     )}
                   >
                     {currentPlayerName}
@@ -120,7 +121,7 @@ export function TrickCard({
                         <Crown
                           className={cn(
                             "h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300",
-                            "text-purple-600 dark:text-purple-400",
+                            "!text-purple-800 dark:text-purple-400",
                             isLeadersTurn && 'animate-pulse'
                           )}
                         />
@@ -141,51 +142,53 @@ export function TrickCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="space-y-1">
+            <div className="space-y-3">
               <TooltipProvider>
-                <Tooltip open={open} onOpenChange={setOpen}>
+                <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="lg"
                       className={cn(
-                        "font-extrabold tracking-tight text-foreground/90 text-left",
-                        "hover:text-foreground transition-colors",
-                        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary/50 rounded-md px-2 -ml-2",
-                        trickNameSize
+                        "text-2xl sm:text-3xl font-bold tracking-tight text-foreground/90 hover:text-foreground",
+                        "p-2 -ml-2 transition-colors hover:bg-accent/50"
                       )}
                       onClick={() => setOpen(!open)}
                     >
                       {trick?.name || 'No trick selected'}
-                    </button>
+                      <Info className="ml-2 h-4 w-4 opacity-70" />
+                    </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs p-4 space-y-3">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-sm">{trick?.name || 'No trick selected'}</h4>
-                      {trick?.description && (
-                        <p className="text-muted-foreground text-sm">{trick.description}</p>
-                      )}
-                      {difficultyClasses && (
-                        <div className="flex items-center gap-2 pt-2">
-                          <div className={cn(
-                            "w-3 h-3 rounded-full",
-                            {
-                              'bg-blue-400': difficultyClasses.display === 'Pro',
-                              'bg-purple-400': difficultyClasses.display === 'Advanced',
-                              'bg-amber-300': difficultyClasses.display === 'Intermediate',
-                              'bg-green-400': difficultyClasses.display === 'Beginner',
-                            }
-                          )} />
-                          <span className="text-xs text-muted-foreground">
-                            {difficultyClasses.display} Difficulty
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </TooltipContent>
+                  {trick?.description && (
+                    <TooltipContent side="top" className="max-w-xs p-4 space-y-3">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-foreground">
+                          {trick.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {trick.description}
+                        </p>
+                        {difficultyClasses && (
+                          <div className="flex items-center gap-2 pt-2">
+                            <Badge
+                              className={cn(
+                                "text-xs font-medium",
+                                difficultyClasses.text,
+                                difficultyClasses.bg
+                              )}
+                            >
+                              {difficultyClasses.display} Difficulty
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
+
               {!trick?.description && (
-                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                <p className="text-muted-foreground text-sm">
                   Draw a card to start
                 </p>
               )}

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Player } from "@/types/types";
 import { cn } from "@/lib/utils";
 import confetti from 'canvas-confetti';
@@ -17,7 +16,6 @@ interface GameOverDialogProps {
 }
 
 export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, players }: GameOverDialogProps) {
-    const [showConfetti, setShowConfetti] = useState(false);
     const confettiRef = useRef<HTMLDivElement>(null);
 
     // Sort players by their score (fewer letters is better)
@@ -26,8 +24,6 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
     // Trigger confetti when the dialog opens
     useEffect(() => {
         if (isOpen && winner) {
-            setShowConfetti(true);
-
             const duration = 3000;
             const animationEnd = Date.now() + duration;
             const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -63,7 +59,6 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
             // Cleanup
             return () => {
                 clearInterval(interval);
-                setShowConfetti(false);
             };
         }
     }, [isOpen, winner]);

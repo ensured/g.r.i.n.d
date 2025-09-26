@@ -1,8 +1,7 @@
 // src/components/game/action-buttons.tsx
 import * as React from 'react';
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, CheckCircle, X, XCircle } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { GameState } from "@/types/types";
 
 type AttemptResult = 'landed' | 'failed';

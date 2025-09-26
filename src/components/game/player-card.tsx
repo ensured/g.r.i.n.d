@@ -21,22 +21,17 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
       )}
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-baseline gap-1.5">
           <h3
             className={cn(
-              'font-medium',
+              'font-medium leading-none',
               isCurrent && 'text-primary font-semibold'
             )}
           >
             {player.name}
           </h3>
           {isLeader && (
-            <>
-              <Crown className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-              <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">
-                Leader
-              </span>
-            </>
+            <Crown className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0 -translate-y-0.5" />
           )}
           {isFollower && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
@@ -62,24 +57,24 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
         </div>
       </div>
 
-      {/* Player's collected letters */}
-      {/* if leader show streak */}
-      {isLeader && (
-        <div className="flex items-center gap-1 mt-2">
-          <div className="text-xs text-muted-foreground">{player.streak}/3</div>
-          <div className="flex-1" />
-          <div className="flex gap-1">
-            {player.letters.map((letter, idx) => (
-              <div
-                key={idx}
-                className="flex items-center justify-center w-5 h-5 text-xs font-bold rounded bg-red-500 text-white"
-              >
-                {letter}
-              </div>
-            ))}
+      {/* Player's collected letters and streak */}
+      <div className="flex items-center gap-1 mt-2">
+        {isLeader && (
+          <div className="text-xs text-muted-foreground">
+            {player.streak}/3 {player.streak > 0 ? "🔥" : ""}
           </div>
-        </div>
-      )}
+        )}
+        {player.letters.map((letter, idx) => (
+          <div
+            key={idx}
+            className="flex items-center justify-center w-5 h-5 text-xs font-bold rounded bg-red-500 text-white"
+          >
+            {letter}
+          </div>
+        ))}
+        <div className="flex-1" />
+
+      </div>
     </div>
   );
 }

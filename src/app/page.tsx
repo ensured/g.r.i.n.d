@@ -36,7 +36,6 @@ export default function GamePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <PlayerSetupForm
-          gameRef={gameRef}
           initialPlayers={playerNames}
           onPlayerNameChange={handlePlayerNameChange}
           onAddPlayer={handleAddPlayer}
@@ -45,8 +44,6 @@ export default function GamePage() {
           onStartGame={handleStartGame}
           isLoading={false}
           validPlayerCount={validPlayerCount.isValid}
-          error={validPlayerCount.error}
-          showSuccess={validPlayerCount.isValid}
         />
       </div>
     );
@@ -68,8 +65,6 @@ export default function GamePage() {
         currentPlayer={currentPlayer}
         onAttempt={handleAttempt}
         onNewGame={() => startNewGame(playerNames)}
-        onSetupNewGame={() => setShowSetup(true)}
-        playerNames={playerNames}
       />
       <GameOverDialog
         isOpen={!!(gameState.isGameOver && gameState.winner)}

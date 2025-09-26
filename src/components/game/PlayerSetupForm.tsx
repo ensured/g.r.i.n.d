@@ -3,12 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { PlayerInput } from "@/components/game/player-input";
 import { useEffect, useRef } from "react";
-import { Crown, User } from "lucide-react";
 import { GAME_SETTINGS } from "@/constants";
-import { Game } from "@/lib/Game";
 
 interface PlayerSetupFormProps {
-  gameRef: React.RefObject<Game | null>;
   initialPlayers: string[];  // Changed from playerNames to initialPlayers
   onPlayerNameChange?: (index: number, value: string) => void;
   onRemovePlayer?: (index: number) => void;
@@ -17,12 +14,9 @@ interface PlayerSetupFormProps {
   onStartGame: (playerNames: string[], gameWord?: string) => void;
   isLoading?: boolean;
   validPlayerCount?: boolean;
-  error?: string;
-  showSuccess?: boolean;
 }
 
 export function PlayerSetupForm({
-  gameRef,
   initialPlayers = [],
   onPlayerNameChange = () => { },
   onRemovePlayer = () => { },
@@ -31,30 +25,10 @@ export function PlayerSetupForm({
   onStartGame,
   isLoading = false,
   validPlayerCount = false,
-  error,
-  showSuccess = false,
 }: PlayerSetupFormProps) {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   if (!initialPlayers) return null;
   const previousPlayerCount = useRef(initialPlayers.length);
-
-  const rules = [
-    {
-      icon: <Crown className="h-4 w-4 text-amber-500 dark:text-amber-400" />,
-      text: "The leader gets maximum 3 consecutive successful trick lands before the next leader is selected",
-      highlight: "leader"
-    },
-    {
-      icon: <User className="h-4 w-4 text-green-500 dark:text-green-400" />,
-      text: "Spell G.R.I.N.D and you're out!",
-      highlight: "G.R.I.N.D"
-    },
-    {
-      icon: <Crown className="h-4 w-4 text-amber-500 dark:text-amber-400" />,
-      text: "The leader chooses the location—you deliver the trick or face elimination",
-      highlight: "leader"
-    }
-  ];
 
   // Focus the first input on initial mount
   useEffect(() => {
@@ -151,7 +125,10 @@ export function PlayerSetupForm({
                 )}
               </Button>
               <Button
-                onClick={() => onClearAllPlayers?.()}
+                onClick={() => {
+                  onClearAllPlayers?.();
+                  inputRefs.current[0]?.focus();
+                }}
                 disabled={initialPlayers.length >= GAME_SETTINGS.MAX_PLAYERS}
                 className="w-full cursor-pointer"
               >
