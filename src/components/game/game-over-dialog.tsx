@@ -75,7 +75,7 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
                     />
 
                     {/* Header with gradient background */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 ">
                         <AlertDialogHeader>
                             <AlertDialogTitle className="text-3xl font-bold text-center mb-2">
                                 Game Over!
@@ -88,7 +88,7 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
                                     className="text-center"
                                 >
                                     <div className="text-2xl font-semibold mb-1">🎉 Winner! 🎉</div>
-                                    <div className="text-3xl font-bold bg-white/20 px-6 py-2 rounded-full inline-block">
+                                    <div className="text-3xl font-bold bg-white/20 dark:bg-white/20 px-6 py-2 rounded-full inline-block">
                                         {winner.name}
                                     </div>
                                 </motion.div>
@@ -97,34 +97,34 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
                     </div>
 
                     {/* Players list */}
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold text-center mb-4">Final Scores</h3>
+                    <div className="p-3">
+                        <h2 className="text-lg font-semibold text-center mb-4">Final Scores</h2>
                         <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                             {sortedPlayers.map((player, index) => (
                                 <motion.div
                                     key={player.id}
-                                    initial={{ x: -50, opacity: 0 }}
+                                    initial={{ x: -30, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
                                     transition={{ delay: index * 0.1, type: 'spring' }}
                                     className={cn(
                                         "flex items-center justify-between p-4 rounded-lg border",
                                         player.id === winner?.id
-                                            ? "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200"
-                                            : "bg-gray-50"
+                                            ? "bg-gradient-to-r from-emerald-500/50 to-blue-600/50 border-emerald-200/50 dark:border-emerald-800/50"
+                                            : "border-emerald-200/50 dark:border-emerald-800/50"
                                     )}
                                 >
                                     <div className="flex items-center">
                                         <div className={cn(
-                                            "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold mr-3",
+                                            "w-10 h-10 rounded-full flex items-center justify-center font-bold mr-3",
                                             player.id === winner?.id
-                                                ? "bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-md"
-                                                : "bg-gray-400"
+                                                ? "bg-emerald-500"
+                                                : ""
                                         )}>
                                             {index + 1}
                                         </div>
                                         <div>
                                             <div className="font-medium">{player.name}</div>
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-xs">
                                                 {player.letters.length} {player.letters.length === 1 ? 'letter' : 'letters'}
                                             </div>
                                         </div>
@@ -136,8 +136,8 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
                                                 className={cn(
                                                     "w-8 h-8 flex items-center justify-center rounded font-bold",
                                                     player.id === winner?.id
-                                                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                                                        : "bg-gray-100 text-gray-700 border border-gray-200"
+                                                        ? "bg-accent"
+                                                        : "border border-border"
                                                 )}
                                             >
                                                 {letter}
@@ -152,14 +152,14 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
                         <div className="mt-8 space-y-3">
                             <AlertDialogAction
                                 onClick={onNewGame}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                                className="cursor-pointer w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700  gap-0.5"
                             >
-                                Play Again (Same Players)
+                                Play Again!<span role="img" aria-label="smile">{"\u{1F60A}"}</span>
                             </AlertDialogAction>
 
                             <AlertDialogAction
                                 onClick={onSetupNewGame}
-                                className="w-full border border-input hover:bg-accent hover:text-accent-foreground"
+                                className="cursor-pointer w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 gap-0.5"
                             >
                                 Setup New Game
                             </AlertDialogAction>

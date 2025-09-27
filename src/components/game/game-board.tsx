@@ -9,6 +9,7 @@ interface GameBoardProps {
     currentPlayer: Player | null;
     onAttempt: (result: AttemptResult) => void;
     onNewGame: () => void;
+    onResetGame: () => void;
 }
 
 export function GameBoard({
@@ -16,9 +17,10 @@ export function GameBoard({
     currentPlayer,
     onAttempt,
     onNewGame,
+    onResetGame,
 }: GameBoardProps) {
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen select-none">
             <main className="container mx-auto px-4 py-4">
                 {/* Current trick card */}
                 {gameState.currentCard && (
@@ -44,6 +46,7 @@ export function GameBoard({
                         </h2>
                         <GameHeader
                             onNewGame={onNewGame}
+                            onResetGame={onResetGame}
                             currentRound={gameState.round}
                         />
                     </div>

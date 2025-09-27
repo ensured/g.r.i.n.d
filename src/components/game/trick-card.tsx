@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Crown, Info } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { GameState, Player } from '@/types/types';
 import { difficultyColors } from '@/types/tricks';
 import { Button } from '../ui/button';
@@ -27,10 +27,10 @@ export function TrickCard({
   // Get the appropriate color classes based on difficulty
   const getDifficultyClasses = (difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Pro' | '') => {
     const defaultClasses = {
-      bg: 'bg-gray-200 dark:bg-gray-700',
-      text: 'text-gray-500',
+      bg: 'bg-background',
+      text: 'text-foreground',
       display: 'Unknown',
-      border: 'border-gray-300 dark:border-gray-600'
+      border: 'border-gray-300'
     };
 
     if (!difficulty) return defaultClasses;
@@ -53,22 +53,25 @@ export function TrickCard({
   const isMobile = useMediaQuery('(max-width: 640px)');
   const playerNameSize = isMobile ? 'text-4xl' : 'text-5xl';
   const cardPadding = isMobile ? 'p-3' : 'p-4 sm:p-6';
-  const [open, setOpen] = useState(false);
 
+  // Use shadcn/ui Tooltip with controlled open state
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+
+  // Auto-close after 6 seconds when open
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (open) {
-      timer = setTimeout(() => setOpen(false), 3000);
+    if (isTooltipOpen) {
+      timer = setTimeout(() => setIsTooltipOpen(false), 6000);
     }
     return () => clearTimeout(timer);
-  }, [open]);
+  }, [isTooltipOpen]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={cn("relative w-full touch-manipulation", className)}
+      className={cn("relative w-full touch-manipulation select-none", className)}
     >
       <Card className={cn(
         "overflow-hidden border-2 bg-card/90 backdrop-blur-sm transition-all duration-300 hover:shadow-xl",
@@ -136,53 +139,51 @@ export function TrickCard({
 
           {/* Trick Info */}
           <motion.div
-            className="text-center space-y-3"
+            className="text-center space-y-3 "
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
             <div className="space-y-3">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild className="cursor-pointer">
+                <Tooltip open={isTooltipOpen} onOpenChange={setIsTooltipOpen}>
+                  <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="lg"
-                      className={cn(
-                        "text-2xl sm:text-3xl font-bold tracking-tight text-foreground/90 hover:text-foreground",
-                        "p-2 -ml-2 transition-colors hover:bg-accent/50"
-                      )}
-                      onClick={() => setOpen(!open)}
+                      className="text-2xl sm:text-3xl font-bold p-2 -ml-2 !bg-zinc-500/15"
+                      onClick={() => isMobile && setIsTooltipOpen(!isTooltipOpen)}
                     >
                       {trick?.name || 'No trick selected'}
                       <Info className="ml-2 h-4 w-4 opacity-70" />
                     </Button>
                   </TooltipTrigger>
-                  {trick?.description && (
-                    <TooltipContent side="top" className="max-w-xs p-4 space-y-3">
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-foreground">
-                          {trick.name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {trick.description}
-                        </p>
-                        {difficultyClasses && (
-                          <div className="flex items-center gap-2 pt-2">
-                            <Badge
-                              className={cn(
-                                "text-xs font-medium",
-                                difficultyClasses.text,
-                                difficultyClasses.bg
-                              )}
-                            >
-                              {difficultyClasses.display} Difficulty
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  )}
+                  <TooltipContent
+                    side="top"
+                    className="max-w-xs p-4"
+                    sideOffset={8}
+                  >
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">
+                        {trick?.name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {trick?.description}
+                      </p>
+                      {difficultyClasses && (
+                        <div className="flex items-center gap-2 pt-2">
+                          <Badge
+                            className={cn(
+                              difficultyClasses.text,
+                              difficultyClasses.bg
+                            )}
+                          >
+                            {difficultyClasses.display}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { PlayerInput } from "@/components/game/player-input";
 import { useEffect, useRef, useMemo } from "react";
 import { GAME_SETTINGS } from "@/constants";
+import { cn } from "@/lib/utils";
 
 interface PlayerSetupFormProps {
   initialPlayers: string[];  // Changed from playerNames to initialPlayers
@@ -53,60 +54,27 @@ export function PlayerSetupForm({
     }
     previousPlayerCount.current = initialPlayers.length;
   }, [initialPlayers, initialPlayers.length]);
-  
+
   if (!initialPlayers) return null;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-foreground p-4 gap-6">
+    <div className="min-h-screen w-[95%]  flex flex-col items-center justify-center text-foreground ">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="w-full max-w-md"
       >
-        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-border/50 dark:border-border/30">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Start a New Game</CardTitle>
-            <CardDescription>
-              {initialPlayers.length < 2
-                ? "Add at least 2 players to begin"
-                : `Ready with ${initialPlayers.length} player${initialPlayers.length !== 1 ? 's' : ''}`}
+        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-border/50 dark:border-border/30 select-none">
+          <CardHeader className="space-y-1 ">
+            <CardTitle className="text-2xl font-bold ">Start a New Game</CardTitle>
+            <CardDescription className={cn("select-none", initialPlayers.length === GAME_SETTINGS.MAX_PLAYERS ? "text-green-600" : "text-muted-foreground")}>
+              {initialPlayers.length === GAME_SETTINGS.MAX_PLAYERS ? "Max players reached! " + GAME_SETTINGS.MAX_PLAYERS : initialPlayers.length < 2 ? "Add at least 2 players to begin" : `Ready with ${initialPlayers.length} player${initialPlayers.length !== 1 ? 's' : ''}`}
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2 ">
 
-            <div className="grid gap-1.5 grid-cols-2">
-              {initialPlayers.map((name, i) => {
-                const showError = name.trim() !== '' && name.trim().length < 2;
-                const showSuccess = name.trim() !== '' && name.trim().length >= 2;
-
-                return (
-                  <PlayerInput
-                    key={i}
-                    name={name}
-                    index={i}
-                    playerNames={initialPlayers}
-                    onNameChange={(index, value) => onPlayerNameChange?.(index, value)}
-                    onRemove={(index) => onRemovePlayer?.(index)}
-                    onAddPlayer={i === initialPlayers.length - 1 ? onAddPlayer : undefined}
-                    error={showError ? "Player name must be at least 2 characters" : undefined}
-                    showSuccess={showSuccess}
-                    inputRef={el => inputRefs.current[i] = el}
-                    className="w-full"
-                  />
-                );
-              })}
-            </div>
-
-            <div className="flex flex-col gap-2 pt-2">
-              <Button
-                onClick={onAddPlayer}
-                disabled={initialPlayers.length >= GAME_SETTINGS.MAX_PLAYERS || isLoading}
-                className="w-full cursor-pointer"
-              >
-                + Add Player
-              </Button>
-
+            <div className="flex flex-col gap-2 pt-2 ">
               <Button
                 onClick={() => onStartGame(initialPlayers)}
                 disabled={isLoading || !validPlayerCount || initialPlayers.length < 2}
@@ -124,17 +92,54 @@ export function PlayerSetupForm({
                   `Start Game`
                 )}
               </Button>
-              <Button
-                onClick={() => {
-                  onClearAllPlayers?.();
-                  inputRefs.current[0]?.focus();
-                }}
-                disabled={initialPlayers.length >= GAME_SETTINGS.MAX_PLAYERS}
-                className="w-full cursor-pointer"
-              >
-                Clear All Players
-              </Button>
+              <div className="w-full flex flex-row gap-4 ">
+                <Button
+                  onClick={onAddPlayer}
+                  disabled={initialPlayers.length >= GAME_SETTINGS.MAX_PLAYERS || isLoading}
+                  className="w-[calc(100%/2-0.5rem)] cursor-pointer"
+                >
+                  + Add Player
+                </Button>
+
+
+                <Button
+                  onClick={() => {
+                    onClearAllPlayers?.();
+                    inputRefs.current[0]?.focus();
+                  }}
+                  disabled={initialPlayers.length < GAME_SETTINGS.MIN_PLAYERS}
+                  className="w-[calc(100%/2-0.5rem)] cursor-pointer"
+                >
+                  Clear All Players
+                </Button>
+              </div>
+
             </div>
+
+            <div className="grid grid-flow-row auto-rows-min gap-1.5 sm:grid-cols-2 overflow-y-auto minimal-scrollbar max-h-[320px] h-[180px] content-start">
+              {initialPlayers.map((name, i) => {
+                const showError = name.trim() !== '' && name.trim().length < 2;
+                const showSuccess = name.trim() !== '' && name.trim().length >= 2;
+
+                return (
+                  <PlayerInput
+                    key={i}
+                    name={name}
+                    index={i}
+                    playerNames={initialPlayers}
+                    onNameChange={(index, value) => onPlayerNameChange?.(index, value)}
+                    onRemove={(index) => onRemovePlayer?.(index)}
+                    onAddPlayer={i === initialPlayers.length - 1 ? onAddPlayer : undefined}
+                    error={showError ? "Player name must be at least 2 characters" : undefined}
+                    showSuccess={showSuccess}
+                    inputRef={el => inputRefs.current[i] = el}
+                    className=" rounded-md flex-1"
+                  />
+                );
+              })}
+            </div>
+
+
           </CardContent>
         </Card>
       </motion.div>

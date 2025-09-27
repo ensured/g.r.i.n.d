@@ -64,7 +64,12 @@ export default function GamePage() {
         gameState={gameState}
         currentPlayer={currentPlayer}
         onAttempt={handleAttempt}
-        onNewGame={() => startNewGame(playerNames)}
+        onNewGame={() => {
+          setShowSetup(true);
+        }}
+        onResetGame={() => {
+          startNewGame(playerNames);
+        }}
       />
       <GameOverDialog
         isOpen={!!(gameState.isGameOver && gameState.winner)}
@@ -72,7 +77,9 @@ export default function GamePage() {
           startNewGame(playerNames);
           setShowSetup(false);
         }}
-        onSetupNewGame={() => setShowSetup(true)}
+        onSetupNewGame={() => {
+          setShowSetup(true);
+        }}
         winner={gameState.winner || null}
         players={gameState.players}
       />

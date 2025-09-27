@@ -36,7 +36,6 @@ export function useGame() {
         const [winner] = activePlayers;
         newState.isGameOver = true;
         newState.winner = winner;
-        toast.success(`Game Over! ${winner.name} wins!`);
       }
 
       setGameState({ ...newState });
@@ -85,8 +84,9 @@ export function useGame() {
   // Handle removing a player
   const handleRemovePlayer = useCallback(
     (index: number) => {
-      if (index === 0 || playerNames.length <= GAME_SETTINGS.MIN_PLAYERS)
+      if (playerNames.length > GAME_SETTINGS.MIN_PLAYERS) {
         setPlayerNames((prevNames) => prevNames.filter((_, i) => i !== index));
+      }
     },
     [playerNames.length]
   );
@@ -94,7 +94,9 @@ export function useGame() {
   // Handle clearing all players - keeps only the first player
   const handleClearAllPlayers = useCallback(() => {
     setPlayerNames((prevNames) =>
-      prevNames.length > 0 ? [prevNames[0]] : [MESSAGES.DEFAULT_PLAYER_NAME(0)]
+      prevNames.length > 0 && prevNames[0] !== "Player1"
+        ? [prevNames[0]]
+        : [MESSAGES.DEFAULT_PLAYER_NAME(0)]
     );
   }, []);
 

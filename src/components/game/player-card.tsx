@@ -21,17 +21,17 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
       )}
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-baseline gap-1.5">
-          <h3
+        <div className="flex items-center gap-1.5 justify-center ">
+          <h2
             className={cn(
               'font-medium leading-none',
               isCurrent && 'text-primary font-semibold'
             )}
           >
             {player.name}
-          </h3>
+          </h2>
           {isLeader && (
-            <Crown className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0 -translate-y-0.5" />
+            <Crown className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
           )}
           {isFollower && (
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">

@@ -12,13 +12,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function GameHeader({ onNewGame, currentRound }: { onNewGame: () => void, currentRound: number }) {
+export function GameHeader({ onNewGame, onResetGame, currentRound }: { onNewGame: () => void, onResetGame: () => void, currentRound: number }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleConfirm = () => {
-    onNewGame();
-    setIsOpen(false);
-  };
 
   return (
     <div >
@@ -37,18 +32,23 @@ export function GameHeader({ onNewGame, currentRound }: { onNewGame: () => void,
           </div>
         </AlertDialogTrigger>
 
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md bg-background backdrop-blur-sm select-none">
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Game?</AlertDialogTitle>
+            <AlertDialogTitle>Cannot be undone</AlertDialogTitle>
             <AlertDialogDescription>
-              This will reset your current progress and start a fresh game. This action cannot be undone.
+              This will reset your current progress and start a fresh game.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} asChild>
-              <Button variant="destructive" size="sm">
+            <AlertDialogAction onClick={onNewGame} asChild>
+              <Button variant="default" size="sm">
+                New Game
+              </Button>
+            </AlertDialogAction>
+            <AlertDialogAction onClick={onResetGame} asChild>
+              <Button variant="default" size="sm">
                 Reset Game
               </Button>
             </AlertDialogAction>
