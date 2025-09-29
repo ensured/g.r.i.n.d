@@ -17,7 +17,7 @@ export function SkateboardAnimation() {
             setShowSkateboard(true);
             // Animation duration is 3 seconds, so we'll hide it after that
             setTimeout(() => setShowSkateboard(false), 3000);
-        }, 10300); // 30 seconds
+        }, 69420);
 
         return () => {
             clearTimeout(initialTimer);
