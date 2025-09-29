@@ -9,10 +9,9 @@ interface PlayerCardProps {
   isCurrent: boolean;
   isLeader: boolean;
   isFollower: boolean;
-  playerCount: number;
 }
 
-export function PlayerCard({ player, isCurrent, isLeader, isFollower, playerCount }: PlayerCardProps) {
+export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCardProps) {
   return (
     <div
       className={cn(

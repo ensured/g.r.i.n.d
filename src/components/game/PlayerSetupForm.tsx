@@ -1,17 +1,17 @@
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { PlayerInput } from "@/components/game/player-input";
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Info, Crown, Users, Award, Clock, X, ArrowUp, Trash2 } from "lucide-react";
+import { Info, X, ArrowUp, Trash2 } from "lucide-react";
 import { GAME_SETTINGS } from "@/constants";
 import { GameRulesList } from "./game-rules-list";
 
 interface PlayerSetupFormProps {
   initialPlayers: string[];
-  onPlayerNameChange?: (index: number, value: string) => void;
+  onPlayerNameChange?: (index: number, name: string) => void;
   onRemovePlayer?: (index: number) => void;
   onAddPlayer?: () => void;
   onClearAllPlayers?: () => void;
@@ -32,6 +32,9 @@ export function PlayerSetupForm({
   isLoading = false,
   validPlayerCount = false,
 }: PlayerSetupFormProps) {
+  const handlePlayerNameChange = useCallback((index: number, name: string) => {
+    onPlayerNameChange(index, name);
+  }, [onPlayerNameChange]);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const previousPlayerCount = useRef(initialPlayersProp?.length || 0);
   const initialPlayers = useMemo(() => initialPlayersProp || [], [initialPlayersProp]);

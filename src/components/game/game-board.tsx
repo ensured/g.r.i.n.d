@@ -58,7 +58,6 @@ export function GameBoard({
                                 isCurrent={currentPlayer ? currentPlayer.id === player.id : false}
                                 isLeader={player.id === gameState.currentLeaderId}
                                 isFollower={gameState.currentFollowerId === player.id}
-                                playerCount={gameState.players.length}
                             />
                         ))}
                     </div>

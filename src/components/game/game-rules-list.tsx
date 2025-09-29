@@ -19,7 +19,7 @@ export function GameRulesList({ className = "" }: GameRulesListProps) {
         <Users className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
         <div>
           <h4 className="font-medium text-foreground">Follower</h4>
-          <p className="text-muted-foreground">Attempt the leader's trick. Succeed to stay safe, fail to get a letter.</p>
+          <p className="text-muted-foreground">Attempt the leader&apos;s trick. Succeed to stay safe, fail to get a letter.</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ export function GameRulesList({ className = "" }: GameRulesListProps) {
         <Award className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-500" />
         <div>
           <h4 className="font-medium text-foreground">Winner</h4>
-          <p className="text-muted-foreground">Be the last player standing by avoiding all 5 letters in "G.R.I.N.D"</p>
+          <p className="text-muted-foreground">Be the last player standing by avoiding all 5 letters in &ldquo;G.R.I.N.D&rdquo;</p>
         </div>
       </div>
 
