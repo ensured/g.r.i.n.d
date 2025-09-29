@@ -36,7 +36,7 @@ export default function GamePage() {
   // Player Setup 
   if (showSetup) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-20rem)]">
+      <div className="">
         <PlayerSetupForm
           initialPlayers={playerNames}
           onPlayerNameChange={handlePlayerNameChange}

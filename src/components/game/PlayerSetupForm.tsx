@@ -37,9 +37,6 @@ export function PlayerSetupForm({
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  const handlePlayerNameChange = useCallback((index: number, name: string) => {
-    onPlayerNameChange(index, name);
-  }, [onPlayerNameChange]);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const previousPlayerCount = useRef(initialPlayersProp?.length || 0);
   const initialPlayers = useMemo(() => initialPlayersProp || [], [initialPlayersProp]);
@@ -180,7 +177,7 @@ export function PlayerSetupForm({
 
   if (!initialPlayers) return null;
   return (
-    <div className=" flex flex-col items-center justify-center text-foreground py-4">
+    <div className=" flex flex-col items-center justify-center text-foreground pt-10">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
