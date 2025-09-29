@@ -32,6 +32,11 @@ export function PlayerSetupForm({
   isLoading = false,
   validPlayerCount = false,
 }: PlayerSetupFormProps) {
+  // Helper function to detect mobile devices
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
   const handlePlayerNameChange = useCallback((index: number, name: string) => {
     onPlayerNameChange(index, name);
   }, [onPlayerNameChange]);
@@ -39,25 +44,21 @@ export function PlayerSetupForm({
   const previousPlayerCount = useRef(initialPlayersProp?.length || 0);
   const initialPlayers = useMemo(() => initialPlayersProp || [], [initialPlayersProp]);
 
-  // Focus the first input on initial mount
-  useEffect(() => {
-    if (inputRefs.current[0]) {
-      const input = inputRefs.current[0];
-      input.focus();
-      const length = input.value.length;
-      input.setSelectionRange(0, length);
-    }
-  }, []);
-
-  // Focus new input when a player is added
+  // Scroll new input into view when a player is added
   useEffect(() => {
     if (initialPlayers.length > previousPlayerCount.current) {
       const lastIndex = initialPlayers.length - 1;
       const input = inputRefs.current[lastIndex];
       if (input) {
-        input.focus();
-        const length = input.value.length;
-        input.setSelectionRange(0, length);
+        // For mobile, just scroll into view without focusing
+        if (!isMobileDevice()) {
+          input.focus();
+          const length = input.value.length;
+          input.setSelectionRange(0, length);
+        } else {
+          // Smoothly scroll the input into view on mobile
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
     previousPlayerCount.current = initialPlayers.length;
