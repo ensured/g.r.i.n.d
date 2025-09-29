@@ -1,11 +1,13 @@
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { AnimatedButton } from "@/components/ui/animated-button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { PlayerInput } from "@/components/game/player-input";
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Info, Crown, Users, Award, Clock, X, ArrowUp } from "lucide-react";
+import { Info, Crown, Users, Award, Clock, X, ArrowUp, Trash2 } from "lucide-react";
 import { GAME_SETTINGS } from "@/constants";
+import { GameRulesList } from "./game-rules-list";
 
 interface PlayerSetupFormProps {
   initialPlayers: string[];
@@ -174,14 +176,14 @@ export function PlayerSetupForm({
 
   if (!initialPlayers) return null;
   return (
-    <div className="w-[95%] flex flex-col items-center justify-center text-foreground py-4">
+    <div className=" flex flex-col items-center justify-center text-foreground py-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="w-full max-w-md"
+        className=" "
       >
-        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-border/50 dark:border-border/30 select-none">
+        <Card className="sm:w-xl w-[92vw] shadow-lg hover:shadow-xl transition-shadow duration-300 border border-border/50 dark:border-border/30 select-none">
           <CardHeader className="space-y-1">
             <div className="flex justify-between items-start">
               <div>
@@ -212,50 +214,13 @@ export function PlayerSetupForm({
           <AnimatePresence>
             {showRules && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
                 transition={{ duration: 0.2 }}
-                className="overflow-hidden"
+                className="px-6"
               >
-                <div className="px-6 pb-4 space-y-4 text-sm text-muted-foreground border-b border-border/50">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Crown className="h-4 w-4 mt-0.5 flex-shrink-0 text-yellow-500" />
-                      <div>
-                        <h4 className="font-medium text-foreground">Leader</h4>
-                        <p>Draw a card and perform the trick. If successful, others must follow. 3 successful tricks pass leadership.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Users className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
-                      <div>
-                        <h4 className="font-medium text-foreground">Follower</h4>
-                        <p>Attempt the leader&apos;s trick. Succeed to stay safe, fail to get a letter.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Award className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-500" />
-                      <div>
-                        <h4 className="font-medium text-foreground">Winner</h4>
-                        <p>Be the last player standing by avoiding all 5 letters in &ldquo;G.R.I.N.D&rdquo;</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Clock className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-500" />
-                      <div>
-                        <h4 className="font-medium text-foreground">Quick Tips</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                          <li>Leaders: Choose tricks you can consistently perform</li>
-                          <li>Followers: Watch the leader carefully and focus on accuracy</li>
-                          <li>Everyone: Stay engaged and have fun!</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <GameRulesList />
               </motion.div>
             )}
           </AnimatePresence>
@@ -283,15 +248,17 @@ export function PlayerSetupForm({
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button
+                <AnimatedButton
                   onClick={onAddPlayer}
                   disabled={initialPlayers.length >= GAME_SETTINGS.MAX_PLAYERS || isLoading}
-                  className="w-[calc(100%)] cursor-pointer"
+                  className="w-full cursor-pointer"
                   variant="outline"
-                  size={'sm'}
+                  size="sm"
+                  animate={initialPlayers.length < 2}
+                  showParticles={initialPlayers.length < 2}
                 >
                   + Add Player
-                </Button>
+                </AnimatedButton>
                 <Button
                   onClick={() => {
                     onClearAllPlayers?.();
@@ -303,6 +270,7 @@ export function PlayerSetupForm({
                   size={'sm'}
                 >
                   Clear All
+                  <Trash2 className="h-4 w-4 ml-2" />
                 </Button>
                 <Button
                   onClick={handleShuffleClick}
@@ -382,6 +350,7 @@ export function PlayerSetupForm({
 
             </div>
 
+
             <div className="relative">
               <div
                 ref={scrollContainerRef}
@@ -410,7 +379,10 @@ export function PlayerSetupForm({
                         index={i}
                         playerNames={initialPlayers}
                         onNameChange={(index, value) => onPlayerNameChange?.(index, value)}
-                        onRemove={(index) => onRemovePlayer?.(index)}
+                        onRemove={(index) => {
+                          onRemovePlayer?.(index);
+                          inputRefs.current[0]?.focus();
+                        }}
                         onAddPlayer={i === initialPlayers.length - 1 ? onAddPlayer : undefined}
                         error={showError ? "Player name must be at least 2 characters" : undefined}
                         showSuccess={showSuccess}
@@ -428,12 +400,12 @@ export function PlayerSetupForm({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="absolute bottom-2 right-2 z-10"
+                    className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10"
                   >
                     <Button
                       onClick={scrollToTop}
                       size="icon"
-                      className="rounded-full w-10 h-10 shadow-lg bg-background/80 backdrop-blur-sm hover:bg-background border border-border"
+                      className="rounded-full w-8 h-8 shadow-lg backdrop-blur-sm cursor-pointer"
                       aria-label="Scroll to top"
                     >
                       <ArrowUp className="h-4 w-4" />

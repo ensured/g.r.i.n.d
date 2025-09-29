@@ -83,7 +83,11 @@ export function useGame() {
   // Handle removing a player
   const handleRemovePlayer = useCallback(
     (index: number) => {
-      if (playerNames.length > GAME_SETTINGS.MIN_PLAYERS) {
+      if (playerNames.length === 1) {
+        handlePlayerNameChange(0, "");
+        return;
+      }
+      if (playerNames.length > 1) {
         setPlayerNames((prevNames) => prevNames.filter((_, i) => i !== index));
       }
     },

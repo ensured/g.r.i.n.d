@@ -6,6 +6,7 @@ import { GameOverDialog } from "@/components/game/game-over-dialog";
 import { GameBoard } from "@/components/game/game-board";
 import { useGame } from '@/hooks/useGame';
 
+
 export default function GamePage() {
   const [showSetup, setShowSetup] = useState(true);
 

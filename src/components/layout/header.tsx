@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Home, Gamepad2, Book } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -15,17 +14,16 @@ export function Header() {
                 <div className="flex items-center space-x-4">
                     <Button
                         asChild
-                        variant={pathname === "/" ? "default" : "ghost"}
+                        variant={pathname === "/" ? "link" : "link"}
                         size="sm"
                         className="flex items-center gap-2"
                     >
                         <Link href="/">
-                            <Home className="h-4 w-4" />
-                            <span>Home</span>
+                            <span>G.R.I.N.D</span>
                         </Link>
                     </Button>
 
-                    <Button
+                    {/* <Button
                         asChild
                         variant={pathname.startsWith("/rules") ? "default" : "ghost"}
                         size="sm"
@@ -47,7 +45,7 @@ export function Header() {
                             <Gamepad2 className="h-4 w-4" />
                             <span>Games</span>
                         </Link>
-                    </Button>
+                    </Button> */}
                 </div>
 
                 <div className="flex items-center gap-2">

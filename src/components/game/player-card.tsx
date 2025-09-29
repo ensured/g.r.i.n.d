@@ -1,15 +1,18 @@
 import { cn } from '@/lib/utils';
 import { Crown } from 'lucide-react';
 import { Player } from '@/types/types';
+import { SkateLetters } from './skate-letters';
+
 
 interface PlayerCardProps {
   player: Player;
   isCurrent: boolean;
   isLeader: boolean;
   isFollower: boolean;
+  playerCount: number;
 }
 
-export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCardProps) {
+export function PlayerCard({ player, isCurrent, isLeader, isFollower, playerCount }: PlayerCardProps) {
   return (
     <div
       className={cn(
@@ -44,6 +47,7 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
             </span>
           )}
         </div>
+
         {isLeader && player.streak > 0 && (
           <div className="text-xs text-muted-foreground">
             {player.streak}/3 {player.streak > 0 ? "🔥" : ""}
@@ -62,7 +66,8 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
       </div>
 
       {/* Player's collected letters and streak */}
-      <div className="flex items-center gap-1 mt-2">
+      <SkateLetters letters={player.letters} />
+      {/* <div className="flex items-center gap-1 mt-2">
 
         {player.letters.map((letter, idx) => (
           <div
@@ -74,7 +79,7 @@ export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCa
         ))}
         <div className="flex-1" />
 
-      </div>
+      </div> */}
     </div>
   );
 }
