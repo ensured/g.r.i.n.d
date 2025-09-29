@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { PlayerInput } from "@/components/game/player-input";
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Info, Crown, Users, Award, Clock, X, ArrowUp } from "lucide-react";
+import { Info, Crown, Users, Award, Clock, X, ArrowUp } from "lucide-react";
 import { GAME_SETTINGS } from "@/constants";
 
 interface PlayerSetupFormProps {
@@ -223,24 +223,23 @@ export function PlayerSetupForm({
                     <div className="flex items-start gap-3">
                       <Crown className="h-4 w-4 mt-0.5 flex-shrink-0 text-yellow-500" />
                       <div>
-                        <h4 className="font-medium text-foreground">Leader's Turn</h4>
+                        <h4 className="font-medium text-foreground">Leader</h4>
                         <p>Draw a card and perform the trick. If successful, others must follow. 3 successful tricks pass leadership.</p>
                       </div>
                     </div>
-
                     <div className="flex items-start gap-3">
                       <Users className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
                       <div>
-                        <h4 className="font-medium text-foreground">Followers</h4>
-                        <p>Attempt the leader's trick. Succeed to stay safe, fail to get a letter.</p>
+                        <h4 className="font-medium text-foreground">Follower</h4>
+                        <p>Attempt the leader&apos;s trick. Succeed to stay safe, fail to get a letter.</p>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
                       <Award className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-500" />
                       <div>
-                        <h4 className="font-medium text-foreground">Winning</h4>
-                        <p>Be the last player standing by avoiding all 5 letters in "G.R.I.N.D"</p>
+                        <h4 className="font-medium text-foreground">Winner</h4>
+                        <p>Be the last player standing by avoiding all 5 letters in &ldquo;G.R.I.N.D&rdquo;</p>
                       </div>
                     </div>
 

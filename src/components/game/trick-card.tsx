@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Crown, Info } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import type { GameState, Player } from '@/types/types';
 import { difficultyColors } from '@/types/tricks';
 import { Button } from '../ui/button';
