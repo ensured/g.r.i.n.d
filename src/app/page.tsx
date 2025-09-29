@@ -19,7 +19,8 @@ export default function GamePage() {
     handlePlayerNameChange,
     handleAddPlayer,
     handleRemovePlayer,
-    handleClearAllPlayers
+    handleClearAllPlayers,
+    handleShufflePlayers
   } = useGame();
 
   // Wrapper to handle the game start and UI state update
@@ -34,13 +35,14 @@ export default function GamePage() {
   // Player Setup 
   if (showSetup) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[calc(100vh-20rem)]">
         <PlayerSetupForm
           initialPlayers={playerNames}
           onPlayerNameChange={handlePlayerNameChange}
           onAddPlayer={handleAddPlayer}
           onRemovePlayer={handleRemovePlayer}
           onClearAllPlayers={handleClearAllPlayers}
+          onShufflePlayers={handleShufflePlayers}
           onStartGame={handleStartGame}
           isLoading={false}
           validPlayerCount={validPlayerCount.isValid}

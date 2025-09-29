@@ -9,7 +9,6 @@ export function useGame() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerNames, setPlayerNames] = useState<string[]>([
     MESSAGES.DEFAULT_PLAYER_NAME(0),
-    MESSAGES.DEFAULT_PLAYER_NAME(1),
   ]);
   const gameRef = useRef<Game | null>(null);
 
@@ -100,6 +99,46 @@ export function useGame() {
     );
   }, []);
 
+  // Generate a cryptographically secure random number in range [0, max)
+  const getCryptoRandom = (max: number) => {
+    const randomBuffer = new Uint32Array(1);
+    window.crypto.getRandomValues(randomBuffer);
+    return (randomBuffer[0] / (0xffffffff + 1)) * max;
+  };
+
+  // Handle shuffling players or setting a specific order
+  const handleShufflePlayers = useCallback((newOrder?: string[]) => {
+    setPlayerNames((prevNames) => {
+      if (newOrder && newOrder.length === prevNames.length) {
+        // If a new order is provided and has the same length, use it
+        return [...newOrder];
+      }
+
+      // Create a copy of the array to shuffle
+      const shuffled = [...prevNames];
+
+      // Enhanced Fisher-Yates shuffle with crypto.getRandomValues()
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        // Get a cryptographically secure random index
+        const j = Math.floor(getCryptoRandom(i + 1));
+
+        // Swap elements
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      // If the shuffled result is the same as the original, swap the first two elements
+      // This ensures the order is always different from the original
+      if (
+        shuffled.every((val, idx) => val === prevNames[idx]) &&
+        shuffled.length > 1
+      ) {
+        [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+      }
+
+      return shuffled;
+    });
+  }, []);
+
   return {
     // State
     gameState,
@@ -116,5 +155,6 @@ export function useGame() {
     handleAddPlayer,
     handleRemovePlayer,
     handleClearAllPlayers,
+    handleShufflePlayers,
   };
 }
