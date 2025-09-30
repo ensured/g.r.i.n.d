@@ -1,3 +1,4 @@
+// src/hooks/useProfile.ts
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Profile } from "@/lib/types";
@@ -25,7 +26,6 @@ export function useProfile() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          // Profile doesn't exist yet, which is fine
           setProfile(undefined);
         } else {
           throw new Error("Failed to fetch profile");
@@ -35,37 +35,44 @@ export function useProfile() {
         setProfile(data);
       }
     } catch (err) {
-      console.error("Error fetching profile:", err);
       setError(err instanceof Error ? err : new Error("An error occurred"));
     } finally {
       setLoading(false);
     }
   }, [getToken, isLoaded, userId]);
 
-  const saveProfile = async (username: string): Promise<Profile> => {
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+  const saveProfile = useCallback(
+    async (username: string): Promise<Profile> => {
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
 
-    const token = await getToken();
-    const response = await fetch("/api/profile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ username }),
-    });
+      try {
+        const token = await getToken();
+        const response = await fetch("/api/profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ username }),
+        });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to save profile");
-    }
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to save profile");
+        }
 
-    const data = await response.json();
-    setProfile(data);
-    return data;
-  };
+        const data = await response.json();
+        setProfile(data);
+        return data;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("An error occurred"));
+        throw err;
+      }
+    },
+    [getToken, userId]
+  );
 
   useEffect(() => {
     fetchProfile();
@@ -73,7 +80,7 @@ export function useProfile() {
 
   return {
     profile,
-    profileLoading: loading,
+    loading,
     error,
     refresh: fetchProfile,
     saveProfile,

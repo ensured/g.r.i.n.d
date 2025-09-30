@@ -10,7 +10,7 @@
     "migrate": "tsx scripts/run-migrations.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.33.0",
+    "@clerk/nextjs": "^6.33.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.7",

@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { Profile } from '@/lib/types';
 
 
-export function CreateUsernameForm({ profileLoading, profile, saveProfile }: { profileLoading: boolean; profile: Profile | undefined; saveProfile: (username: string) => Promise<Profile> }) {
+export function CreateUsernameForm({ profile, saveProfile }: { profile: Profile | undefined; saveProfile: (username: string) => Promise<Profile> }) {
   const [username, setUsername] = useState(profile?.username || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -31,14 +31,6 @@ export function CreateUsernameForm({ profileLoading, profile, saveProfile }: { p
       setIsSaving(false);
     }
   };
-
-  if (profileLoading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

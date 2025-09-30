@@ -7,7 +7,7 @@ import { saveGameResults } from "@/actions/gameActions";
 import { useProfile } from "./useProfile";
 
 export function useGame() {
-  const { profile, profileLoading, saveProfile } = useProfile();
+  const { profile, loading: profileLoading, saveProfile } = useProfile();
 
   // Game state
   const [gameState, setGameState] = useState<GameState | null>(null);

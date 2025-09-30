@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PlayerSetupForm } from "@/components/game/PlayerSetupForm";
 import { GameOverDialog } from "@/components/game/game-over-dialog";
 import { GameBoard } from "@/components/game/game-board";
 import { useGame } from '@/hooks/useGame';
 import { SignInButton, useAuth } from '@clerk/nextjs';
-import { CreateUsernameForm } from '@/components/profile/CreateUsernameForm';
 import { Loader2 } from 'lucide-react';
 import { Timer } from '@/components/game/Timer';
+import { CreateUsernameForm } from '@/components/profile/CreateUsernameForm';
 
 export default function GamePage() {
   // All hooks must be called unconditionally at the top level
@@ -33,8 +33,47 @@ export default function GamePage() {
     saveProfile
   } = useGame();
 
-  // Show loading state while auth and profile are loading
-  if (!isAuthLoaded || (isSignedIn && profileLoading)) {
+  // Get username safely
+  const username = profile?.username || '';
+
+  // Memoize the initial players array at the top level
+  const initialPlayers = useMemo(() =>
+    playerNames[0] === 'Player 1' && username
+      ? [username, ...playerNames.slice(1)]
+      : playerNames,
+    [playerNames, username]
+  );
+
+  // All callbacks must be defined at the top level as well
+  const handleStartGame = useCallback((names: string[]) => {
+    if (!username) return;
+    const success = startNewGame(names, username);
+    if (success) {
+      setShowSetup(false);
+    }
+  }, [startNewGame, username, setShowSetup]);
+
+  const handleNewGame = useCallback(() => {
+    setShowSetup(true);
+  }, [setShowSetup]);
+
+  const handleResetGame = useCallback(() => {
+    if (username) {
+      startNewGame(playerNames, username);
+    }
+  }, [startNewGame, playerNames, username]);
+
+  const handleNewGameWithReset = useCallback(() => {
+    if (username) {
+      startNewGame(playerNames, username);
+      setShowSetup(false);
+    }
+  }, [startNewGame, playerNames, username, setShowSetup]);
+
+  const handleSetupNewGame = useCallback(() => {
+    setShowSetup(true);
+  }, [setShowSetup]);
+  if (!isAuthLoaded || (isSignedIn && profile === undefined)) {
     return (
       <div className="flex items-center justify-center min-h-[44.4vh] p-4">
         <Loader2 className="h-10 w-10 animate-spin" />
@@ -42,7 +81,6 @@ export default function GamePage() {
     );
   }
 
-  // If not signed in, show sign in prompt
   if (!isSignedIn) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[44.4vh] p-4">
@@ -53,34 +91,23 @@ export default function GamePage() {
     );
   }
 
-
-  // If signed in but no username set, show username form
-  if (isSignedIn && (!profile || !profile.username)) {
+  if (profileLoading) {
     return (
-      <div className="container mx-auto max-w-md py-12 px-4">
-        <CreateUsernameForm profileLoading={profileLoading} profile={profile} saveProfile={saveProfile} />
+      <div className="flex items-center justify-center min-h-[44.4vh] p-4">
+        <Loader2 className="h-10 w-10 animate-spin" />
       </div>
     );
   }
 
-  // At this point, we know the user is signed in and has a profile with a username
-  const username = profile?.username || '';
+  if (!profile?.username) {
+    return (
+      <div className="container mx-auto max-w-md py-12 px-4">
+        <CreateUsernameForm profile={profile} saveProfile={saveProfile} />
+      </div>
+    );
+  }
 
-  // Set the first player's name to the username if it's the default
-  const initialPlayers = playerNames[0] === 'Player 1'
-    ? [username || '', ...playerNames.slice(1)]
-    : playerNames;
 
-  // Wrapper to handle the game start and UI state update
-  const handleStartGame = (names: string[]) => {
-    if (!username) return;
-    const success = startNewGame(names, username);
-    if (success) {
-      setShowSetup(false);
-    }
-  };
-
-  // Player Setup 
   if (showSetup) {
     return (
       <div className="">
@@ -116,22 +143,13 @@ export default function GamePage() {
         gameState={gameState}
         currentPlayer={currentPlayer}
         onAttempt={handleAttempt}
-        onNewGame={() => {
-          setShowSetup(true);
-        }}
-        onResetGame={() => {
-          startNewGame(playerNames, username!);
-        }}
+        onNewGame={handleNewGame}
+        onResetGame={handleResetGame}
       />
       <GameOverDialog
         isOpen={!!(gameState.isGameOver && gameState.winner)}
-        onNewGame={() => {
-          startNewGame(playerNames, username!);
-          setShowSetup(false);
-        }}
-        onSetupNewGame={() => {
-          setShowSetup(true);
-        }}
+        onNewGame={handleNewGameWithReset}
+        onSetupNewGame={handleSetupNewGame}
         winner={gameState.winner || null}
         players={gameState.players}
         startTime={gameState.startTime || undefined}
