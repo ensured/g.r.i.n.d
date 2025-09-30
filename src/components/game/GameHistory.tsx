@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getGameDetails } from '@/actions/game-queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { Clock3, Trophy, Target, Loader2, Award, Clock, Crown, UserPlus } from "lucide-react";
+import { Clock3, Trophy, Target, Loader2, Award, Clock, UserPlus } from "lucide-react";
 import { SkateLetters } from "./skate-letters";
 import { GameResult, PlayerResult } from "@/actions/game-queries";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -116,22 +116,23 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                                                     <span className="text-foreground">{game.winner_name}</span> won in {game.total_rounds} round{game.total_rounds !== 1 ? 's' : ''}
                                                 </h3>
                                             </div>
-                                            
-                                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                                <span className="flex items-center gap-1.5">
-                                                    <Clock3 className="h-3.5 w-3.5" />
-                                                    {formatDistanceToNow(new Date(game.end_time), { addSuffix: true })}
-                                                </span>
-                                                
-                                                {game.creator_username && (
-                                                    <span className="hidden sm:inline-flex items-center gap-1.5">
-                                                        <span className="text-muted-foreground/50">•</span>
-                                                        <UserPlus className="h-3.5 w-3.5 text-blue-400" />
-                                                        <span>Created by {game.creator_username}</span>
+
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground  pt-0.5">
+                                                <div className="flex gap-4  border-b">
+                                                    <span className="flex items-center gap-1.5 ">
+                                                        <Clock3 className="h-3.5 w-3.5" />
+                                                        {formatDistanceToNow(new Date(game.end_time), { addSuffix: true })}
                                                     </span>
-                                                )}
+
+                                                    {game.creator_username && (
+                                                        <span className="hidden sm:inline-flex items-center gap-1.5">
+                                                            <UserPlus className="h-3.5 w-3.5 text-blue-400" />
+                                                            <span>Created by {game.creator_username}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            
+
                                             {game.creator_username && (
                                                 <div className="sm:hidden pt-1">
                                                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -141,7 +142,7 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-4">
                                             <div className="bg-gradient-to-br from-background to-accent/50 group-hover:from-accent/20 group-hover:to-accent/30 px-3 py-1.5 rounded-lg border border-border/50 backdrop-blur-sm transition-all duration-200">
                                                 <span className="font-bold text-foreground">{game.winner_score}</span>
@@ -174,11 +175,11 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                     {selectedGame && (
 
                         <>
-                            <DialogHeader className="pb-4 flex flex-row items-center w-full justify-between">
+                            <DialogHeader className="pb-4 flex flex-row items-center w-full justify-between pt-2">
                                 <DialogTitle className="text-2xl font-bold tracking-tight">Game Details</DialogTitle>
                                 {selectedGame.creator_username && (
                                     <div className="flex items-center gap-2">
-                                        <Crown className="w-4 h-4 text-amber-500" />
+                                        <UserPlus className="w-4 h-4 text-green-500" />
                                         <span>Created by {selectedGame.creator_username}</span>
                                     </div>
                                 )}
