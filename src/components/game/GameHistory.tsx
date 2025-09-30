@@ -88,16 +88,16 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
 
     return (
         <div className="w-full space-y-6">
-            <div className="flex justify-between items-center">
+            {/* <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-bold tracking-tight">Game History</h2>
 
                 </div>
-            </div>
+            </div> */}
 
-            <Card className="border-border">
-                <CardHeader className="pb-3">
-                    <CardTitle>Recent Games</CardTitle>
+            <Card className="border-border/70">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold tracking-tight">Game History</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 ">
                     {games.length === 0 ? (
@@ -107,7 +107,7 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                             {games.map((game) => (
                                 <div
                                     key={game.game_id}
-                                    className={`p-4 border border-border/80 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors`}
+                                    className={`p-4 border border-border/60 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors`}
                                     onClick={() => handleGameSelect(game.game_id)}
                                 >
                                     <div className="flex justify-between items-center">
