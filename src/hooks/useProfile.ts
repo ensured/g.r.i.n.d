@@ -4,7 +4,7 @@ import { Profile } from "@/lib/types";
 
 export function useProfile() {
   const { getToken, isLoaded, userId } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -26,7 +26,7 @@ export function useProfile() {
       if (!response.ok) {
         if (response.status === 404) {
           // Profile doesn't exist yet, which is fine
-          setProfile(null);
+          setProfile(undefined);
         } else {
           throw new Error("Failed to fetch profile");
         }

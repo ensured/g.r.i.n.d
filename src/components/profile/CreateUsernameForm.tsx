@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
+import { Profile } from '@/lib/types';
 
-export function CreateUsernameForm() {
-  const { profile, profileLoading, saveProfile } = useProfile();
+
+export function CreateUsernameForm({ profileLoading, profile, saveProfile }: { profileLoading: boolean; profile: Profile | undefined; saveProfile: (username: string) => Promise<Profile> }) {
   const [username, setUsername] = useState(profile?.username || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

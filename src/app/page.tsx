@@ -29,7 +29,8 @@ export default function GamePage() {
     handleRemovePlayer,
     handleClearAllPlayers,
     handleShufflePlayers,
-    profileLoading
+    profileLoading,
+    saveProfile
   } = useGame();
 
   // Show loading state while auth and profile are loading
@@ -52,35 +53,28 @@ export default function GamePage() {
     );
   }
 
-  // If we don't have a profile yet, show loading
-  if (!profile) {
-    return (
-      <div className="flex items-center justify-center min-h-[44.4vh] p-4">
-        <Loader2 className="h-10 w-10 animate-spin" />
-      </div>
-    );
-  }
 
   // If signed in but no username set, show username form
-  if (!profile.username) {
+  if (isSignedIn && (!profile || !profile.username)) {
     return (
       <div className="container mx-auto max-w-md py-12 px-4">
-        <CreateUsernameForm />
+        <CreateUsernameForm profileLoading={profileLoading} profile={profile} saveProfile={saveProfile} />
       </div>
     );
   }
 
   // At this point, we know the user is signed in and has a profile with a username
-  const username = profile.username;
+  const username = profile?.username || '';
 
   // Set the first player's name to the username if it's the default
   const initialPlayers = playerNames[0] === 'Player 1'
-    ? [username, ...playerNames.slice(1)]
+    ? [username || '', ...playerNames.slice(1)]
     : playerNames;
 
   // Wrapper to handle the game start and UI state update
   const handleStartGame = (names: string[]) => {
-    const success = startNewGame(names, username!); // Pass the creator's username
+    if (!username) return;
+    const success = startNewGame(names, username);
     if (success) {
       setShowSetup(false);
     }
