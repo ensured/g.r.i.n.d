@@ -64,8 +64,8 @@ function DialogContent({
           className
         )}
         style={{
-          backgroundColor: 'hsl(var(--background))',
-          color: 'hsl(var(--foreground))'
+          backgroundColor: 'var(--background)',
+          color: 'var(--foreground)'
         }}
         {...props}
       >

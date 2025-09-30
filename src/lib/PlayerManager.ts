@@ -13,27 +13,31 @@ export class PlayerManager {
   }
 
   public getActivePlayers(): Player[] {
-    return this.players.filter(p => !p.isEliminated);
+    return this.players.filter((p) => !p.isEliminated);
   }
 
   public addLetter(playerId: number): boolean {
-    const player = this.players.find(p => p.id === playerId);
-    if (!player || player.isEliminated) return false;
+    let playerEliminated = false;
 
-    const wordParts = this.GAME_WORD.split(".");
-    if (player.letters.length >= wordParts.length) return false;
+    this.players = this.players.map((player) => {
+      if (player.id !== playerId || player.isEliminated) return player;
 
-    // Get the next letter based on the current number of letters
-    const nextLetter = wordParts[player.letters.length];
-    player.letters.push(nextLetter);
+      const wordParts = this.GAME_WORD.split(".");
+      if (player.letters.length >= wordParts.length) return player;
 
-    // Check if player has all letters of the word (without dots)
-    if (player.letters.join("") === wordParts.join("")) {
-      player.isEliminated = true;
-      return true; // Player was eliminated
-    }
-    
-    return false; // Player was not eliminated
+      const nextLetter = wordParts[player.letters.length];
+      const newLetters = [...player.letters, nextLetter];
+
+      // Check if player has all letters of the word (without dots)
+      if (newLetters.join("") === wordParts.join("")) {
+        playerEliminated = true;
+        return { ...player, letters: newLetters, isEliminated: true };
+      }
+
+      return { ...player, letters: newLetters };
+    });
+
+    return playerEliminated;
   }
 
   public checkGameOver(): boolean {
@@ -45,15 +49,35 @@ export class PlayerManager {
     return activePlayers.length === 1 ? activePlayers[0] : null;
   }
 
+  /**
+   * Initialize players with the given names
+   * @param playerNames Array of player names
+   */
+  public initializePlayers(playerNames: string[]): void {
+    this.players = playerNames.map((name, index) => ({
+      id: index,
+      name,
+      score: 0,
+      tricksLanded: 0,
+      tricksAttempted: 0,
+      streak: 0,
+      isEliminated: false,
+      letters: [],
+      isLeader: index === 0, // First player is the initial leader
+    }));
+  }
+
   public updatePlayer(playerId: number, updates: Partial<Player>): void {
-    const player = this.players.find(p => p.id === playerId);
-    if (player) {
-      Object.assign(player, updates);
-    }
+    this.players = this.players.map((player) => {
+      if (player.id === playerId) {
+        return { ...player, ...updates };
+      }
+      return player;
+    });
   }
 
   public resetStreaks(): void {
-    this.players.forEach(player => {
+    this.players.forEach((player) => {
       player.streak = 0;
     });
   }

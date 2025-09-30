@@ -16,9 +16,10 @@ interface PlayerSetupFormProps {
   onAddPlayer?: () => void;
   onClearAllPlayers?: () => void;
   onShufflePlayers?: (newOrder?: string[]) => void;
-  onStartGame: (playerNames: string[], gameWord?: string) => void;
+  onStartGame: (playerNames: string[], creatorUsername: string) => void;
   isLoading?: boolean;
   validPlayerCount?: boolean;
+  username: string; // The creator's username (first player)
 }
 
 export function PlayerSetupForm({
@@ -31,6 +32,7 @@ export function PlayerSetupForm({
   onStartGame,
   isLoading = false,
   validPlayerCount = false,
+  username,
 }: PlayerSetupFormProps) {
   // Helper function to detect mobile devices
   const isMobileDevice = () => {
@@ -230,7 +232,7 @@ export function PlayerSetupForm({
 
             <div className="flex flex-col gap-2 pt-2">
               <Button
-                onClick={() => onStartGame(initialPlayers)}
+                onClick={() => onStartGame(initialPlayers, username)}
 
                 disabled={isLoading || !validPlayerCount || initialPlayers.length < 2}
                 className="!text-xl h-16 cursor-pointer w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-md transition-all duration-200 transform hover:scale-[1.02]"
@@ -389,6 +391,7 @@ export function PlayerSetupForm({
                         showSuccess={showSuccess}
                         inputRef={el => inputRefs.current[i] = el}
                         className="rounded-md flex-1"
+                        isCreator={name === username}
                       />
                     </motion.div>
                   );

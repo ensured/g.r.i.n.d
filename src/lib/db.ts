@@ -2,6 +2,7 @@
 import { Pool } from "pg";
 import { config } from "dotenv";
 import { join } from "path";
+import { migrations } from "./migrations";
 
 // Load environment variables from .env.local
 config({
@@ -57,8 +58,45 @@ async function ensureMigrationsTable() {
 
 ensureMigrationsTable();
 
-// Export the pool for direct use
-export { pool };
+// Function to run migrations
+async function runMigrations() {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // Get all applied migrations
+    const { rows: appliedMigrations } = await client.query<{name: string}>(
+      'SELECT name FROM _migrations ORDER BY name'
+    );
+    
+    const appliedMigrationNames = new Set(appliedMigrations.map(m => m.name));
+    
+    // Apply each migration that hasn't been applied yet
+    for (const [name, sql] of Object.entries(migrations)) {
+      if (!appliedMigrationNames.has(name)) {
+        console.log(`Applying migration: ${name}`);
+        await client.query(sql);
+        await client.query(
+          'INSERT INTO _migrations (name) VALUES ($1)',
+          [name]
+        );
+        console.log(`Applied migration: ${name}`);
+      }
+    }
+    
+    await client.query('COMMIT');
+    console.log('All migrations applied successfully');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Migration failed:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
-// Default export for CommonJS compatibility
-export default pool;
+// Run migrations when the module is loaded
+runMigrations().catch(console.error);
+
+// Export the pool for direct use
+export { pool as default, pool, runMigrations };

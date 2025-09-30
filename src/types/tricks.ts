@@ -6,27 +6,37 @@ export const difficultyColors: Record<
     bg: string;
     text: string;
     border: string;
+    gradient: string;
+    shadow: string;
   }
 > = {
   Beginner: {
-    bg: "bg-green-100 dark:bg-green-900/30",
-    text: "text-green-800 dark:text-green-200",
-    border: "border-green-200 dark:border-green-800/50",
+    bg: "bg-gradient-to-br from-green-400/90 to-green-500/90 dark:from-green-600/90 dark:to-green-700/90",
+    text: "text-white dark:text-green-50",
+    border: "border-green-300/30 dark:border-green-700/50",
+    gradient: "from-green-400 to-green-500 dark:from-green-500 dark:to-green-600",
+    shadow: "shadow-lg shadow-green-500/20 dark:shadow-green-600/20"
   },
   Intermediate: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
-    text: "text-yellow-800 dark:text-yellow-200",
-    border: "border-yellow-200 dark:border-yellow-800/50",
+    bg: "bg-gradient-to-br from-amber-400/90 to-amber-500/90 dark:from-amber-500/90 dark:to-amber-600/90",
+    text: "text-white dark:text-amber-50",
+    border: "border-amber-300/30 dark:border-amber-700/50",
+    gradient: "from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600",
+    shadow: "shadow-lg shadow-amber-500/20 dark:shadow-amber-600/20"
   },
   Advanced: {
-    bg: "bg-orange-100 dark:bg-orange-900/30",
-    text: "text-orange-800 dark:text-orange-200",
-    border: "border-orange-200 dark:border-orange-800/50",
+    bg: "bg-gradient-to-br from-orange-500/90 to-orange-600/90 dark:from-orange-600/90 dark:to-orange-700/90",
+    text: "text-white dark:text-orange-50",
+    border: "border-orange-300/30 dark:border-orange-700/50",
+    gradient: "from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-700",
+    shadow: "shadow-lg shadow-orange-500/20 dark:shadow-orange-600/20"
   },
   Pro: {
-    bg: "bg-red-100 dark:bg-red-900/30",
-    text: "text-red-800 dark:text-red-200",
-    border: "border-red-200 dark:border-red-800/50",
+    bg: "bg-gradient-to-br from-red-500/90 to-red-600/90 dark:from-red-600/90 dark:to-red-700/90",
+    text: "text-white dark:text-red-50",
+    border: "border-red-300/30 dark:border-red-700/50",
+    gradient: "from-red-500 to-red-600 dark:from-red-600 dark:to-red-700",
+    shadow: "shadow-lg shadow-red-500/20 dark:shadow-red-600/20"
   },
 };
 

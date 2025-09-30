@@ -6,6 +6,10 @@ import { Header } from "@/components/layout/header";
 import { Toaster } from "@/components/ui/sonner";
 import { SkateboardAnimation } from "@/components/SkateboardAnimation";
 
+import {
+  ClerkProvider,
+} from '@clerk/nextjs'
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -42,14 +46,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <Header />
-          <main className="flex-1 flex flex-col">
-            {children}
-            <Toaster position="top-center" richColors closeButton />
-          </main>
-          <SkateboardAnimation />
+          <ClerkProvider>
+            <Header />
+            <main className="min-h-[calc(100vh-4rem)]">
+              <div className="h-full">
+                {children}
+              </div>
+            </main>
+            <Toaster position="top-center" />
+            <SkateboardAnimation />
+          </ClerkProvider>
         </ThemeProvider>
       </body>
     </html>

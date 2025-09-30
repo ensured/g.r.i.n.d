@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { GameState, Player, AttemptResult } from '@/types/types';
 import { ActionButtons } from '@/components/game/action-buttons';
 import { GameHeader } from '@/components/game/game-header';
@@ -19,6 +20,14 @@ export function GameBoard({
     onNewGame,
     onResetGame,
 }: GameBoardProps) {
+    const [resetKey, setResetKey] = useState(0);
+
+    const handleResetGame = () => {
+        // Increment the reset key to trigger re-render of SkateLetters
+        setResetKey(prev => prev + 1);
+        // Call the original reset handler
+        onResetGame();
+    };
     return (
         <div className="min-h-screen select-none">
             <main className="container mx-auto px-4 py-4">
@@ -46,18 +55,19 @@ export function GameBoard({
                         </h2>
                         <GameHeader
                             onNewGame={onNewGame}
-                            onResetGame={onResetGame}
+                            onResetGame={handleResetGame}
                             currentRound={gameState.round}
                         />
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 2xl:grid-cols-4 gap-2">
+                    <div className={"grid grid-cols-2 sm:grid-cols-2  gap-2" + (gameState.players.length >= 4 ? " 2xl:grid-cols-3" : "")}>
                         {gameState.players.map((player) => (
                             <PlayerCard
-                                key={player.id}
+                                key={`${player.id}-${resetKey}`}
                                 player={player}
                                 isCurrent={currentPlayer ? currentPlayer.id === player.id : false}
                                 isLeader={player.id === gameState.currentLeaderId}
                                 isFollower={gameState.currentFollowerId === player.id}
+                                resetKey={resetKey}
                             />
                         ))}
                     </div>

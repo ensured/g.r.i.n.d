@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Crown } from 'lucide-react';
+import { Crown, Award, BarChart4 } from 'lucide-react';
 import { Player } from '@/types/types';
 import { SkateLetters } from './skate-letters';
 
@@ -9,76 +9,95 @@ interface PlayerCardProps {
   isCurrent: boolean;
   isLeader: boolean;
   isFollower: boolean;
+  resetKey: number;
 }
 
-export function PlayerCard({ player, isCurrent, isLeader, isFollower }: PlayerCardProps) {
+export function PlayerCard({ player, isCurrent, isLeader, isFollower, resetKey }: PlayerCardProps) {
   return (
     <div
       className={cn(
-        'relative p-4 rounded-lg border transition-all',
+        'relative p-3 sm:p-4 rounded-lg border transition-all',
         isCurrent
           ? 'border-primary bg-primary/10'
           : 'border-border/50 hover:border-border',
-        player.isEliminated && 'opacity-50'
+        player.isEliminated && 'opacity-50',
+        'w-full' // Ensure full width on all screens
       )}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5 justify-center ">
-          <h2
-            className={cn(
-              'font-medium leading-none',
-              isCurrent && 'text-primary font-semibold'
-            )}
-          >
-            {player.name}
-          </h2>
-          {isLeader && (
-            <Crown className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
-          )}
-          {isFollower && (
-            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-              Follower
-            </span>
-          )}
-          {player.isEliminated && (
-            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-800 rounded-full">
-              Eliminated
-            </span>
-          )}
+      <div className="flex sm:items-center justify-between gap-2 sm:gap-4">
+        {/* Player Info Section */}
+        <div className="flex-1 min-w-0">
+
+          <div className="flex items-center gap-1 justify-between flex-wrap">
+            <h2
+              className={cn(
+                'text-sm sm:text-base font-medium leading-tight truncate flex items-center gap-1',
+                isCurrent && 'text-primary font-semibold',
+                'min-w-0'
+              )}
+              title={player.name}
+            >
+              {player.name}
+              {isLeader && (
+                <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+              )}
+            </h2>
+
+            <div className="flex items-center gap-1.5  flex-shrink-0">
+
+              <div className="flex items-center gap-1.5 ">
+
+
+                {/* Streak indicator */}
+                {isLeader && player.streak > 0 && (
+                  <div className="flex items-center gap-1 text-amber-500">
+                    <span className="text-xs sm:text-sm font-medium">{player.streak}</span>
+                    <span className="text-sm">🔥</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Follower badge */}
+              {isFollower && (
+                <span className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
+                  Follower
+                </span>
+              )}
+
+              {/* Eliminated badge */}
+              {player.isEliminated && (
+                <span className="text-[10px] sm:text-xs px-1.5 py-0.5 bg-red-100 text-red-800 rounded-full whitespace-nowrap">
+                  Eliminated
+                </span>
+              )}
+            </div>
+            {/* Stats Section */}
+            <div className="flex flex-col justify-start w-full bg-background/10 rounded-md gap-0.5 border border-border">
+              <div className="flex items-center gap-1 px-2 py-1  border-b border-border">
+                <Award className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+                <span className="text-xs font-medium">Score: {player.score || 0}</span>
+              </div>
+              {/* seperator */}
+              {player.tricksAttempted > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 border-b border-border">
+                  <BarChart4 className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                  <span className="text-xs font-medium">{Math.round(((player.tricksLanded || 0) / player.tricksAttempted) * 100)}% trick success</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+
         </div>
 
-        {isLeader && player.streak > 0 && (
-          <div className="text-xs text-muted-foreground">
-            {player.streak}/3 {player.streak > 0 ? "🔥" : ""}
-          </div>
-        )}
-        <div className="flex items-center gap-1">
-          {/* <span
-            className={cn(
-              'font-mono font-bold',
-              isCurrent ? 'text-primary' : 'text-foreground/80'
-            )}
-          >
-            {player.score}
-          </span> */}
-        </div>
+
       </div>
 
-      {/* Player's collected letters and streak */}
-      <SkateLetters letters={player.letters} />
-      {/* <div className="flex items-center gap-1 mt-2">
+      {/* Skate Letters Section */}
+      <div className="mt-1 sm:mt-2">
+        <SkateLetters key={`skate-letters-${resetKey}`} letters={player.letters} />
 
-        {player.letters.map((letter, idx) => (
-          <div
-            key={idx}
-            className="flex items-center justify-center w-5 h-5 text-xs font-bold rounded bg-red-500 text-white"
-          >
-            {letter}
-          </div>
-        ))}
-        <div className="flex-1" />
-
-      </div> */}
+      </div>
     </div>
   );
 }

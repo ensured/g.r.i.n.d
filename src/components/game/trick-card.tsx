@@ -3,12 +3,18 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Crown, Info } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { GameState, Player } from '@/types/types';
 import { difficultyColors } from '@/types/tricks';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
 interface TrickCardProps {
   gameState: GameState;
   currentPlayer: Player | null;
@@ -30,7 +36,9 @@ export function TrickCard({
       bg: 'bg-background',
       text: 'text-foreground',
       display: 'Unknown',
-      border: 'border-gray-300'
+      border: 'border-gray-300',
+      gradient: 'from-gray-400 to-gray-500',
+      shadow: 'shadow-gray-500/20'
     };
 
     if (!difficulty) return defaultClasses;
@@ -42,7 +50,9 @@ export function TrickCard({
       bg: colors.bg,
       text: colors.text,
       display: difficulty,
-      border: colors.border
+      border: colors.border,
+      gradient: colors.gradient,
+      shadow: colors.shadow
     };
   };
 
@@ -54,17 +64,7 @@ export function TrickCard({
   const playerNameSize = isMobile ? 'text-4xl' : 'text-5xl';
   const cardPadding = isMobile ? 'p-3' : 'p-4 sm:p-6';
 
-  // Use shadcn/ui Tooltip with controlled open state
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-
-  // Auto-close after 6 seconds when open
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isTooltipOpen) {
-      timer = setTimeout(() => setIsTooltipOpen(false), 6000);
-    }
-    return () => clearTimeout(timer);
-  }, [isTooltipOpen]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
     <motion.div
@@ -144,52 +144,163 @@ export function TrickCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="space-y-3">
-              <TooltipProvider>
-                <Tooltip open={isTooltipOpen} onOpenChange={setIsTooltipOpen}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="lg"
-                      className="text-2xl sm:text-3xl font-bold p-2 -ml-2 !bg-zinc-500/15"
-                      onClick={() => isMobile && setIsTooltipOpen(!isTooltipOpen)}
-                    >
-                      {trick?.name || 'No trick selected'}
-                      <Info className="ml-2 h-4 w-4 opacity-70" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className="max-w-xs p-4"
-                    sideOffset={8}
+            <div className={cn("space-y-3", isDialogOpen ? "blur" : "")}>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className={cn(
+                      "cursor-pointer text-2xl sm:text-3xl font-bold",
+
+                      "group relative",
+                    )}
                   >
-                    <div className="space-y-3">
-                      <h4 className="font-semibold">
-                        {trick?.name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {trick?.description}
-                      </p>
-                      {difficultyClasses && (
-                        <div className="flex items-center gap-2 pt-2">
-                          <Badge
-                            className={cn(
-                              difficultyClasses.text,
-                              difficultyClasses.bg
-                            )}
-                          >
-                            {difficultyClasses.display}
-                          </Badge>
-                        </div>
+                    {/* Difficulty indicator bar */}
+                    <div
+                      className={cn(
+                        "absolute top-0 left-0 right-0 h-0.5",
+                        difficultyClasses ? `${difficultyClasses.gradient}` : "bg-gradient-to-r from-primary to-primary/70",
+                        "opacity-70 group-hover:opacity-100 transition-opacity duration-200"
                       )}
+                    />
+                    <span className="relative z-10 flex items-center">
+                      {trick?.name || 'No trick selected'}
+                      <Info className={cn("ml-3 !h-6 !w-6 opacity-70 transition-transform group-hover:scale-110", `${difficultyClasses.bg} rounded-full`)} />
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
+                      top: '2px', // Adjust to account for the indicator bar
+                      height: 'calc(100% - 2px)' // Reduce height to avoid overlapping with the indicator
+                    }} />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-lg border border-border/40 shadow-2xl rounded-2xl p-0 overflow-hidden">
+                  <div className="relative">
+                    {/* Decorative gradient bar */}
+                    <div className={cn(
+                      "h-1.5 w-full",
+                      difficultyClasses ? `bg-gradient-to-r ${difficultyClasses.gradient}` : "bg-gradient-to-r from-primary to-primary/70"
+                    )} />
+
+                    <DialogHeader className="px-8 pt-8 pb-2">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                      >
+                        <DialogTitle className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                          {trick?.name}
+                        </DialogTitle>
+                      </motion.div>
+                    </DialogHeader>
+
+                    <div className="px-8 pt-2 pb-6 space-y-6">
+                      <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                          hidden: { opacity: 0 },
+                          visible: {
+                            opacity: 1,
+                            transition: {
+                              staggerChildren: 0.1,
+                              delayChildren: 0.2
+                            }
+                          }
+                        }}
+                        className="flex flex-col items-center space-y-4"
+                      >
+                        {difficultyClasses && (
+                          <motion.div
+                            variants={{
+                              hidden: { scale: 0.9, opacity: 0, y: 10 },
+                              visible: {
+                                scale: 1,
+                                opacity: 1,
+                                y: 0,
+                                transition: {
+                                  type: 'spring',
+                                  stiffness: 400,
+                                  damping: 15
+                                }
+                              }
+                            }}
+                            className="relative w-full max-w-xs"
+                          >
+                            <div className={cn(
+                              'absolute -inset-0.5 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-500',
+                              `bg-gradient-to-r ${difficultyClasses.gradient}`
+                            )} />
+                            <Badge
+                              className={cn(
+                                difficultyClasses.bg,
+                                difficultyClasses.text,
+                                difficultyClasses.border,
+                                'relative border-0 w-full',
+                                'text-sm font-bold py-3 px-5 rounded-full',
+                                'shadow-lg',
+                                'transform transition-all duration-300',
+                                'group-hover:scale-[1.02] group-hover:shadow-xl',
+                                'overflow-hidden',
+                                'z-10',
+                                'before:absolute before:inset-0 before:bg-white/10 before:opacity-0',
+                                'group-hover:before:opacity-100',
+                                'cursor-default group'
+                              )}
+                            >
+                              <span className="relative z-10 flex items-center justify-between w-full">
+                                <span className="text-xs font-semibold opacity-90 tracking-wider">DIFFICULTY</span>
+                                <span className="flex-1 w-4 h-px mx-3 bg-current/30" />
+                                <span className="font-bold text-sm tracking-wide">{difficultyClasses.display}</span>
+                              </span>
+                            </Badge>
+                          </motion.div>
+                        )}
+
+                        <motion.div
+                          variants={{
+                            hidden: { scale: 0.95, opacity: 0 },
+                            visible: {
+                              scale: 1,
+                              opacity: 1,
+                              transition: { duration: 0.3 }
+                            }
+                          }}
+                          className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent px-6 py-1"
+                        >
+                          {trick?.points} points
+                        </motion.div>
+                      </motion.div>
+
+                      <motion.div
+                        variants={{
+                          hidden: { opacity: 0, y: 10 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.4,
+                              ease: 'easeOut'
+                            }
+                          }
+                        }}
+                        className="pt-2 pb-6"
+                      >
+                        <div className="relative">
+                          <div className="absolute -inset-4 -z-10 bg-gradient-to-r from-primary/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <p className="text-foreground/90 text-center leading-relaxed text-pretty text-base md:text-[15px] px-2">
+                            {trick?.description || 'No description available.'}
+                          </p>
+                        </div>
+                      </motion.div>
                     </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {!trick?.description && (
                 <p className="text-muted-foreground text-sm">
-                  Draw a card to start
+                  No description available
                 </p>
               )}
             </div>
@@ -203,8 +314,8 @@ export function TrickCard({
           >
             {children}
           </motion.div>
-        </div>
-      </Card>
-    </motion.div>
+        </div >
+      </Card >
+    </motion.div >
   );
 }

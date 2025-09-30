@@ -4,7 +4,7 @@ import { PlayerManager } from "./PlayerManager";
 import { trickCards } from "@/types/tricks";
 
 export class Game {
-  private state: GameState;
+  private state: GameState = this.getDefaultState();
   private turnManager: TurnManager;
   private playerManager: PlayerManager;
   private readonly GAME_WORD = "GRIND";
@@ -26,8 +26,13 @@ export class Game {
       );
     }
 
-    // Apply updates to state
-    this.state = { ...this.state, ...updates };
+    // Apply updates to state with proper immutability
+    this.state = {
+      ...this.state,
+      ...updates,
+      // Ensure players array is a new reference if it's being updated
+      players: updates.players ? [...updates.players] : this.state.players,
+    };
   }
 
   /**
@@ -37,18 +42,34 @@ export class Game {
     const players = this.playerManager.getPlayers();
     const activePlayers = this.getActivePlayers();
     const isGameOver = this.playerManager.checkGameOver();
+    const gameJustEnded = isGameOver && !this.state.isGameOver;
 
-    this.updateState(
-      {
-        players,
-        activePlayers: activePlayers.length,
-        isGameOver,
-        winner: isGameOver
-          ? this.state.winner || players.find((p) => !p.isEliminated) || null
-          : null,
-      },
-      true
-    );
+    const updates: Partial<GameState> = {
+      players,
+      activePlayers: activePlayers.length,
+      isGameOver,
+      winner: isGameOver
+        ? this.state.winner || players.find((p) => !p.isEliminated) || null
+        : null,
+    };
+
+    // If game just ended, set the end time and trigger save
+    if (gameJustEnded) {
+      const endTime = new Date();
+      updates.endTime = endTime;
+      
+      // Dispatch a custom event that the game has ended
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('game:end', { 
+          detail: { 
+            endTime,
+            winner: updates.winner 
+          } 
+        }));
+      }
+    }
+
+    this.updateState(updates, true);
   }
 
   /**
@@ -98,8 +119,13 @@ export class Game {
   }
 
   constructor(initialState: Partial<GameState> = {}) {
-    // Initialize with default state
+    // Initialize with default state first
     this.state = this.getDefaultState();
+
+    // Set creatorUsername from initialState if provided
+    if (initialState.creatorUsername) {
+      this.state.creatorUsername = initialState.creatorUsername;
+    }
 
     // Initialize player manager with provided or empty players
     this.playerManager = new PlayerManager(initialState.players || []);
@@ -148,53 +174,60 @@ export class Game {
       gameWord: this.GAME_WORD,
       winner: null,
       activePlayers: 0,
+      creatorUsername: "", // Initialize with empty string, will be set in constructor
+      startTime: null, // Will be set when game starts
+      endTime: null, // Will be set when game ends
     };
   }
 
   /**
    * Initialize a new game with players
    * @param playerNames Array of player names
+   * @param creatorUsername Username of the game creator
    */
-  public initializeGame(playerNames: string[]): void {
+  public initializeGame(playerNames: string[], creatorUsername: string): void {
     if (playerNames.length < 2) {
       throw new Error("At least 2 players are required to start the game");
     }
 
     // Initialize players
-    const players = playerNames.map((name: string, index: number) => ({
-      id: index,
-      name,
-      score: 0,
-      isEliminated: false,
-      letters: [],
-      streak: 0,
-    }));
+    this.playerManager.initializePlayers(playerNames);
 
-    // Initialize player manager with new players
-    this.playerManager = new PlayerManager(players);
+    // Set the first player as the leader
+    const firstPlayer = this.playerManager.getPlayers()[0];
+    if (!firstPlayer) {
+      throw new Error("Failed to initialize game: No players found");
+    }
 
-    // Initialize turn manager with a fresh deck
+    // Initialize turn manager with the first player as leader
     this.turnManager = new TurnManager({
-      currentLeaderId: 0,
+      currentLeaderId: firstPlayer.id,
+      turnPhase: "leader" as const,
+      deck: [...trickCards],
+    });
+
+    // Initialize game state with creatorUsername and start time
+    const initialState: Partial<GameState> = {
+      players: this.playerManager.getPlayers(),
+      currentLeaderId: firstPlayer.id,
       currentFollowerId: null,
       turnPhase: "leader",
-      deck: [...trickCards],
-      currentCard: null,
-      turns: [],
-    });
+      isGameOver: false,
+      gameStarted: true,
+      activePlayers: playerNames.length,
+      creatorUsername: creatorUsername,
+      startTime: new Date(), // Set the actual start time when game begins
+      endTime: null,
+    };
 
-    // Initialize the first turn with a card for the leader
+    // Update the state with the new initial state
+    this.updateState(initialState);
+
+    // Initialize the first turn by drawing a card
     this.turnManager.initializeFirstTurn();
 
-    // Update game state
-    this.updateState({
-      ...this.getDefaultState(),
-      gameStarted: true,
-      players: this.playerManager.getPlayers(),
-      activePlayers: this.getActivePlayers().length,
-    });
-
     // Update derived state
+    this.updatePlayerState();
     this.updateTurnState();
   }
 
@@ -210,11 +243,9 @@ export class Game {
     const players = this.playerManager?.getPlayers() || [];
     const turnState = this.turnManager?.getState();
 
-    if (!turnState) return;
+    if (!turnState || !turnState.currentCard) return;
 
     const isLeader = turnState.turnPhase === "leader";
-
-    // Get the current player based on turn phase
     const currentPlayer = isLeader
       ? players.find((p: Player) => p.id === turnState.currentLeaderId)
       : players.find((p: Player) => p.id === turnState.currentFollowerId);
@@ -224,15 +255,38 @@ export class Game {
     // Process the turn based on player type
     if (isLeader) {
       if (attemptResult === "landed") {
-        // If leader lands the trick, prepare follower turns
+        // If leader lands the trick, award points and prepare follower turns
+        const points = turnState.currentCard?.points || 0;
         this.playerManager?.updatePlayer(currentPlayer.id, {
           streak: (currentPlayer.streak || 0) + 1,
+          score: (currentPlayer.score || 0) + points,
+          tricksLanded: (currentPlayer.tricksLanded || 0) + 1,
+          tricksAttempted: (currentPlayer.tricksAttempted || 0) + 1,
         });
-        this.turnManager?.prepareFollowerTurns(players);
+        console.log(
+          `[Game] Leader ${
+            currentPlayer.name
+          } scored ${points} points (Total: ${currentPlayer.score + points})`
+        );
+        console.log(
+          `[Game] Tricks: ${(currentPlayer.tricksLanded || 0) + 1}/${
+            (currentPlayer.tricksAttempted || 0) + 1
+          }`
+        );
+        this.turnManager.prepareFollowerTurns(players);
       } else {
-        // If leader fails, pass leadership
-        this.playerManager?.updatePlayer(currentPlayer.id, { streak: 0 });
+        // If leader fails, add a letter and pass leadership
+        this.playerManager?.updatePlayer(currentPlayer.id, {
+          streak: 0,
+          tricksAttempted: (currentPlayer.tricksAttempted || 0) + 1,
+        });
         this.playerManager?.addLetter(currentPlayer.id);
+        console.log(`[Game] Leader ${currentPlayer.name} failed the trick`);
+        console.log(
+          `[Game] Tricks: ${currentPlayer.tricksLanded || 0}/${
+            (currentPlayer.tricksAttempted || 0) + 1
+          }`
+        );
         this.turnManager?.passLeadership(players, () => {
           this.updateState({
             round: (this.state.round || 0) + 1,
@@ -241,14 +295,44 @@ export class Game {
       }
     } else {
       // Handle follower turn
-      if (attemptResult !== "landed") {
+      if (attemptResult === "landed") {
+        // Award points to follower for landing the trick
+        const points = turnState.currentCard?.points || 0;
+        this.playerManager?.updatePlayer(currentPlayer.id, {
+          score: (currentPlayer.score || 0) + points,
+          streak: (currentPlayer.streak || 0) + 1,
+          tricksLanded: (currentPlayer.tricksLanded || 0) + 1,
+          tricksAttempted: (currentPlayer.tricksAttempted || 0) + 1,
+        });
+        console.log(
+          `[Game] Follower ${
+            currentPlayer.name
+          } scored ${points} points (Total: ${currentPlayer.score + points})`
+        );
+        console.log(
+          `[Game] Tricks: ${(currentPlayer.tricksLanded || 0) + 1}/${
+            (currentPlayer.tricksAttempted || 0) + 1
+          }`
+        );
+      } else {
+        // Follower failed, add a letter
+        this.playerManager?.updatePlayer(currentPlayer.id, {
+          streak: 0,
+          tricksAttempted: (currentPlayer.tricksAttempted || 0) + 1,
+        });
         this.playerManager?.addLetter(currentPlayer.id);
+        console.log(`[Game] Follower ${currentPlayer.name} failed the trick`);
+        console.log(
+          `[Game] Tricks: ${currentPlayer.tricksLanded || 0}/${
+            (currentPlayer.tricksAttempted || 0) + 1
+          }`
+        );
       }
 
       // Move to next follower or back to leader
-      this.turnManager?.moveToNextPlayer(players, () => {
+      this.turnManager.moveToNextPlayer(players, () => {
         // This callback runs when we need to pass leadership
-        this.turnManager?.passLeadership(players, () => {
+        this.turnManager.passLeadership(players, () => {
           this.updateState({
             round: (this.state.round || 0) + 1,
           });
