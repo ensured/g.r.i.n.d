@@ -73,7 +73,8 @@ export default function GamePage() {
   const handleSetupNewGame = useCallback(() => {
     setShowSetup(true);
   }, [setShowSetup]);
-  if (!isAuthLoaded || (isSignedIn && profile === undefined)) {
+  // Show loading state while auth is loading or if we're still loading the profile for a signed-in user
+  if (!isAuthLoaded || (isSignedIn && profileLoading)) {
     return (
       <div className="flex items-center justify-center min-h-[44.4vh] p-4">
         <Loader2 className="h-10 w-10 animate-spin" />
@@ -85,13 +86,13 @@ export default function GamePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[44.4vh] p-4">
         <h1 className="text-2xl font-bold mb-2">Please Sign In</h1>
-        <p className="text-muted-foreground mb-6">You must be signed in to play</p>
         <SignInButton />
       </div>
     );
   }
 
-  if (profileLoading) {
+  // Show loading state only if we're still loading and don't have a profile yet
+  if (profileLoading && !profile) {
     return (
       <div className="flex items-center justify-center min-h-[44.4vh] p-4">
         <Loader2 className="h-10 w-10 animate-spin" />
@@ -99,7 +100,8 @@ export default function GamePage() {
     );
   }
 
-  if (!profile?.username) {
+  // Show username form if user is signed in but has no username
+  if (isSignedIn && (!profile || !profile.username)) {
     return (
       <div className="container mx-auto max-w-md py-12 px-4">
         <CreateUsernameForm profile={profile} saveProfile={saveProfile} />
