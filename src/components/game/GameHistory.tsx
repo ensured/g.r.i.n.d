@@ -95,11 +95,11 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                 </div>
             </div>
 
-            <Card>
+            <Card className="border-border">
                 <CardHeader className="pb-3">
                     <CardTitle>Recent Games</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 ">
                     {games.length === 0 ? (
                         <p>No games found</p>
                     ) : (
@@ -107,7 +107,7 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                             {games.map((game) => (
                                 <div
                                     key={game.game_id}
-                                    className={`p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors`}
+                                    className={`p-4 border border-border/80 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors`}
                                     onClick={() => handleGameSelect(game.game_id)}
                                 >
                                     <div className="flex justify-between items-center">
@@ -152,7 +152,7 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                                 <DialogTitle className="text-2xl font-bold tracking-tight">Game Details</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-6">
-                                <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-6 rounded-xl border border-primary/20">
+                                <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-6 rounded-xl border ">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                             <Trophy className="w-6 h-6 text-yellow-500" />
