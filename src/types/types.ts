@@ -15,17 +15,18 @@ export type Player = {
   streak: number; // Tracks current consecutive successful tricks (max 3)
   tricksLanded: number; // Tracks total successful tricks
   tricksAttempted: number; // Tracks total trick attempts
+  tricks?: any[]; // Array to store trick history
 };
 
 export type GameState = {
   gameStarted: boolean;
-  startTime: Date | null;  // Null before game starts
+  startTime: Date | null; // Null before game starts
   endTime: Date | null;
   players: Player[];
   deck: TrickCard[];
   currentCard: TrickCard | null;
   turnPhase: TurnPhase;
-  round: number;
+  currentRound: number; // Current round number
   isGameOver: boolean;
   gameWord: string;
   turns: Turn[];
@@ -34,6 +35,7 @@ export type GameState = {
   winner?: Player | null; // The winning player when the game is over
   activePlayers: number; // Number of active (non-eliminated) players
   creatorUsername: string; // Username of the game creator
+  settings?: Record<string, any>; // Game settings
 };
 
 export type AttemptResult = "landed" | "failed";

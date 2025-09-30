@@ -192,22 +192,45 @@ export class TurnManager {
 
     // Reset streak for the new leader
     if (newLeader) {
-      newLeader.streak = 0;
+      // Find the player in the players array and update their streak
+      const playerToUpdate = players.find((p) => p.id === newLeader.id);
+      if (playerToUpdate) {
+        playerToUpdate.streak = 0;
+        console.log(`[TurnManager] Reset streak for ${playerToUpdate.name}`);
+      }
     }
 
+    // Store the current card before changing it
+    const previousCard = this.state.currentCard;
+
+    // Determine if this is a new trick (new round)
+    // A new trick starts when:
+    // 1. It's the start of the game (no previous card)
+    // 2. The previous leader failed their trick (indicated by the callback being provided)
+    const isNewTrick = !previousCard || onRoundIncrement !== undefined;
+
+    // Update the leader and phase
     this.state.currentLeaderId = newLeader.id;
     this.state.turnPhase = "leader";
     this.state.currentFollowerId = null;
-    this.state.currentCard = this.drawCard();
 
-    // Call the round increment callback if provided
-    onRoundIncrement?.();
+    if (isNewTrick) {
+      // Draw a new card for the new trick
+      this.state.currentCard = this.drawCard();
+
+      // Call the round increment callback if provided
+      if (onRoundIncrement) {
+        console.log(
+          `[TurnManager] New trick started: ${this.state.currentCard?.name}`
+        );
+        onRoundIncrement();
+      }
+    } else {
+      // We're just changing leaders for the same trick
+      console.log(`[TurnManager] Same trick, new leader: ${newLeader.name}`);
+    }
   }
 
-  /**
-   * Gets the current state of the turn manager
-   * @returns A deep copy of the current turn manager state
-   */
   /**
    * Gets the current state of the turn manager
    * @returns A deep copy of the current turn manager state including all turns

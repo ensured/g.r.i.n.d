@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getGameDetails } from '@/actions/game-queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { Clock3, Trophy, Target, Loader2, Award, Clock } from "lucide-react";
+import { Clock3, Trophy, Target, Loader2, Award, Clock, Crown, UserPlus } from "lucide-react";
 import { SkateLetters } from "./skate-letters";
 import { GameResult, PlayerResult } from "@/actions/game-queries";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -87,42 +87,66 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
     };
 
     return (
-        <div className="w-full space-y-6">
-            {/* <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                    <h2 className="text-2xl font-bold tracking-tight">Game History</h2>
-
-                </div>
-            </div> */}
-
+        <div className="w-full">
             <Card className="border-border/70">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold tracking-tight">Game History</CardTitle>
+                    <CardTitle className="text-2xl lg:text-3xl font-bold tracking-tight pl-2">Game History</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 ">
+                <CardContent className="p-4 md:p-6">
                     {games.length === 0 ? (
-                        <p>No games found</p>
+                        <div className="text-center py-8">
+                            <p className="text-muted-foreground">No games found. Start a new game to see history here.</p>
+                        </div>
                     ) : (
                         <div className="grid gap-4">
                             {games.map((game) => (
                                 <div
                                     key={game.game_id}
-                                    className={`p-4 border border-border/60 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors`}
-                                    onClick={() => handleGameSelect(game.game_id)}
+                                    className="group p-5 border border-border/50 rounded-xl hover:bg-accent/20 transition-all duration-200 cursor-pointer hover:shadow-sm backdrop-blur-sm bg-background/50"
+                                    onClick={() => setSelectedGame(game)}
                                 >
-                                    <div className="flex justify-between items-center">
-                                        <div>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="space-y-1.5">
                                             <div className="flex items-center gap-2">
-                                                <p className="font-medium">
-                                                    {game.winner_name} won in {game.total_rounds} rounds
-                                                </p>
+                                                <div className="relative">
+                                                    <Trophy className="h-4 w-4 text-amber-400 flex-shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]" />
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-[6px]" />
+                                                </div>
+                                                <h3 className="font-semibold text-base">
+                                                    <span className="text-foreground">{game.winner_name}</span> won in {game.total_rounds} round{game.total_rounds !== 1 ? 's' : ''}
+                                                </h3>
                                             </div>
-                                            <p className="text-sm text-muted-foreground">
-                                                {formatDistanceToNow(new Date(game.end_time), { addSuffix: true })}
-                                            </p>
+                                            
+                                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Clock3 className="h-3.5 w-3.5" />
+                                                    {formatDistanceToNow(new Date(game.end_time), { addSuffix: true })}
+                                                </span>
+                                                
+                                                {game.creator_username && (
+                                                    <span className="hidden sm:inline-flex items-center gap-1.5">
+                                                        <span className="text-muted-foreground/50">•</span>
+                                                        <UserPlus className="h-3.5 w-3.5 text-blue-400" />
+                                                        <span>Created by {game.creator_username}</span>
+                                                    </span>
+                                                )}
+                                            </div>
+                                            
+                                            {game.creator_username && (
+                                                <div className="sm:hidden pt-1">
+                                                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                        <UserPlus className="h-3 w-3 text-blue-500" />
+                                                        Created by {game.creator_username}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold">{game.winner_score} pts</p>
+                                        
+                                        <div className="flex items-center gap-4">
+                                            <div className="bg-gradient-to-br from-background to-accent/50 group-hover:from-accent/20 group-hover:to-accent/30 px-3 py-1.5 rounded-lg border border-border/50 backdrop-blur-sm transition-all duration-200">
+                                                <span className="font-bold text-foreground">{game.winner_score}</span>
+                                                <span className="text-xs text-muted-foreground ml-1">pts</span>
+                                            </div>
                                             <p className="text-sm text-muted-foreground">
                                                 {game.total_players} players
                                             </p>
@@ -136,22 +160,31 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
             </Card>
 
             {selectedGame && (
-                <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 !bg-black/50">
-                    <div className="flex items-center gap-2 ">
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+                    <div className="flex items-center gap-2">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     </div>
                 </div>
             )}
 
-            <Dialog open={!!selectedGame} onOpenChange={(open) => !open && setSelectedGame(null)}>
+            <Dialog open={!!selectedGame} onOpenChange={(open) => {
+                if (!open) setSelectedGame(null);
+            }}>
                 <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto !bg-background">
                     {selectedGame && (
 
                         <>
-                            <DialogHeader className="pb-4">
+                            <DialogHeader className="pb-4 flex flex-row items-center w-full justify-between">
                                 <DialogTitle className="text-2xl font-bold tracking-tight">Game Details</DialogTitle>
+                                {selectedGame.creator_username && (
+                                    <div className="flex items-center gap-2">
+                                        <Crown className="w-4 h-4 text-amber-500" />
+                                        <span>Created by {selectedGame.creator_username}</span>
+                                    </div>
+                                )}
                             </DialogHeader>
                             <div className="space-y-6">
+
                                 <div className="bg-gradient-to-r from-primary/5 to-primary/10 p-6 rounded-xl border ">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -197,6 +230,7 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
                                             }
                                             return null;
                                         })()}
+
                                         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                                             <div className="flex items-center gap-1.5">
                                                 <Clock3 className="w-4 h-4" />

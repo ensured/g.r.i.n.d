@@ -56,7 +56,7 @@ export function GameBoard({
                         <GameHeader
                             onNewGame={onNewGame}
                             onResetGame={handleResetGame}
-                            currentRound={gameState.round}
+                            currentRound={gameState.currentRound}
                         />
                     </div>
                     <div className={"grid grid-cols-2 sm:grid-cols-2  gap-2" + (gameState.players.length >= 4 ? " 2xl:grid-cols-3" : "")}>

@@ -57,15 +57,17 @@ export class Game {
     if (gameJustEnded) {
       const endTime = new Date();
       updates.endTime = endTime;
-      
+
       // Dispatch a custom event that the game has ended
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('game:end', { 
-          detail: { 
-            endTime,
-            winner: updates.winner 
-          } 
-        }));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("game:end", {
+            detail: {
+              endTime,
+              winner: updates.winner,
+            },
+          })
+        );
       }
     }
 
@@ -163,7 +165,6 @@ export class Game {
     return {
       gameStarted: false,
       isGameOver: false,
-      round: 0,
       players: [],
       deck: [...trickCards],
       currentCard: null,
@@ -171,6 +172,7 @@ export class Game {
       currentLeaderId: 0,
       currentFollowerId: null,
       turns: [],
+      currentRound: 0,
       gameWord: this.GAME_WORD,
       winner: null,
       activePlayers: 0,
@@ -288,8 +290,9 @@ export class Game {
           }`
         );
         this.turnManager?.passLeadership(players, () => {
+          // Update the round in the game state
           this.updateState({
-            round: (this.state.round || 0) + 1,
+            currentRound: (this.state.currentRound || 0) + 1,
           });
         });
       }
@@ -333,8 +336,9 @@ export class Game {
       this.turnManager.moveToNextPlayer(players, () => {
         // This callback runs when we need to pass leadership
         this.turnManager.passLeadership(players, () => {
+          // Update the round in the game state
           this.updateState({
-            round: (this.state.round || 0) + 1,
+            currentRound: (this.state.currentRound || 0) + 1,
           });
         });
       });

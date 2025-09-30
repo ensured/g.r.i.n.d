@@ -3,13 +3,26 @@
 import { GameState } from "@/types/types";
 import pool from "@/lib/db";
 
+interface GameHistoryRow {
+  game_id: string;
+  start_time: string;
+  end_time: string;
+  winner_name: string;
+  winner_score: number;
+  total_players: number;
+  total_rounds: number;
+  creator_username?: string;
+  players: any[];
+  settings: Record<string, any>;
+}
+
 export async function saveGameResults(
   gameState: GameState
 ): Promise<{ success: boolean; gameId: string }> {
   console.log("Saving game results:", {
     isGameOver: gameState.isGameOver,
     winner: gameState.winner,
-    players: gameState.players.map((p) => `${p.name}: ${p.score} points`),
+    players: gameState.players,
   });
 
   if (!gameState.isGameOver || !gameState.winner) {
@@ -17,95 +30,107 @@ export async function saveGameResults(
       "Cannot save game results: Game is not over or has no winner"
     );
   }
-
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
     // Prepare player results as JSONB
-    const playerResults = gameState.players.map((player) => {
-      const tricksLanded = player.tricksLanded || 0;
-      const tricksAttempted = player.tricksAttempted || 0;
+    const playerResults = gameState.players.map((player) => ({
+      player_name: player.name,
+      final_score: player.score,
+      final_letters: player.letters.join(","),
+      tricks_landed: player.tricksLanded,
+      tricks_attempted: player.tricksAttempted,
+      is_eliminated: player.isEliminated || false,
+      letters: player.letters,
+      score: player.score,
+      tricks: player.tricks || [],
+    }));
 
-      const finalPosition = player.isEliminated
-        ? null
-        : gameState.players
-            .filter((p) => !p.isEliminated)
-            .sort((a, b) => b.score - a.score)
-            .findIndex((p) => p.id === player.id) + 1;
+    const gameStateToStore = {
+      currentRound: gameState.currentRound,
+      isGameOver: gameState.isGameOver,
+      players: gameState.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        letters: p.letters,
+        isEliminated: p.isEliminated,
+        tricksLanded: p.tricksLanded || 0,
+        tricksAttempted: p.tricksAttempted || 0,
+        tricks: p.tricks || [],
+      })),
+      winner: gameState.winner,
+      startTime: gameState.startTime,
+      endTime: gameState.endTime,
+      settings: gameState.settings || {},
+    };
 
-      return {
-        player_name: player.name,
-        final_score: player.score,
-        final_letters: player.letters.join(","),
-        final_position: finalPosition,
-        tricks_landed: tricksLanded,
-        tricks_attempted: tricksAttempted,
-      };
-    });
-
-    // 1. Insert game record with player results in JSONB
-    // Ensure dates are properly formatted for the database with null checks
-    let startTime = gameState.startTime
+    // Ensure dates are properly formatted
+    const startTime = gameState.startTime
       ? new Date(gameState.startTime)
       : new Date();
     const endTime = gameState.endTime
       ? new Date(gameState.endTime)
       : new Date();
+    const creatorUsername = gameState.creatorUsername || "unknown";
 
-    // If startTime is still invalid (shouldn't happen), use current time as fallback
-    if (isNaN(startTime.getTime())) {
-      console.warn("Invalid startTime, using current time as fallback");
-      startTime = new Date();
+    // First, check if game_state column exists
+    const checkColumn = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'games' AND column_name = 'game_state'
+      )`);
+
+    const hasGameStateColumn = checkColumn.rows[0].exists;
+
+    // Build the query dynamically based on column existence
+    const columns = [
+      "start_time",
+      "end_time",
+      "player_results",
+      "winner_name",
+      "winner_score",
+      "total_players",
+      "total_rounds",
+      "is_active",
+      "settings",
+      "creator_username",
+    ];
+
+    const values = [
+      startTime.toISOString(),
+      endTime.toISOString(),
+      JSON.stringify(playerResults),
+      gameState.winner.name,
+      gameState.winner.score,
+      gameState.players.length,
+      gameState.currentRound,
+      !gameState.isGameOver, // is_active
+      JSON.stringify(gameState.settings || {}),
+      creatorUsername,
+    ];
+
+    // Add game_state if the column exists
+    if (hasGameStateColumn) {
+      columns.push("game_state");
+      values.push(JSON.stringify(gameStateToStore));
     }
 
-    const gameResult = await client.query(
-      `INSERT INTO games 
-       (total_rounds, winner_name, winner_score, total_players, start_time, end_time, player_results)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING game_id`,
-      [
-        gameState.round || 1, // Default to 1 if currentRound is not set
-        gameState.winner.name,
-        gameState.winner.score,
-        gameState.players.length,
-        startTime.toISOString(), // Convert to ISO string for consistent formatting
-        endTime.toISOString(),
-        JSON.stringify(playerResults),
-      ]
-    );
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+    const query = {
+      text: `
+        INSERT INTO games (
+          ${columns.join(", ")}
+        ) VALUES (${placeholders})
+        RETURNING game_id
+      `,
+      values,
+    };
 
-    const gameId = gameResult.rows[0].game_id;
-
-    // 2. For backward compatibility, keep inserting into player_results
-    await Promise.all(
-      gameState.players.map(async (player) => {
-        const tricksLanded = player.tricksLanded || 0;
-        const tricksAttempted = player.tricksAttempted || 0;
-
-        const finalPosition = player.isEliminated
-          ? null
-          : gameState.players
-              .filter((p) => !p.isEliminated)
-              .sort((a, b) => b.score - a.score)
-              .findIndex((p) => p.id === player.id) + 1;
-
-        await client.query(
-          `INSERT INTO player_results 
-           (game_id, player_name, final_score, final_letters, final_position, tricks_landed, tricks_attempted)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [
-            gameId,
-            player.name,
-            player.score,
-            player.letters.join(","),
-            finalPosition,
-            tricksLanded,
-            tricksAttempted,
-          ]
-        );
-      })
-    );
+    const result = await client.query(query);
+    const gameId = result.rows[0].game_id;
 
     console.log("Game results saved successfully");
     await client.query("COMMIT");
@@ -114,30 +139,73 @@ export async function saveGameResults(
     await client.query("ROLLBACK");
     console.error("Failed to save game results:", error);
     throw error;
-  } finally {
-    client.release();
   }
 }
 
-export async function getGameHistory(limit = 10) {
+export async function getGameHistory(limit = 10): Promise<GameHistoryRow[]> {
   const client = await pool.connect();
   try {
-    const result = await client.query(
-      `SELECT 
-        game_id,
-        start_time,
-        end_time,
-        winner_name,
-        winner_score,
-        total_players,
-        total_rounds,
-        COALESCE(player_results, '[]'::jsonb) as players
-      FROM games
-      ORDER BY end_time DESC
-      LIMIT $1`,
-      [limit]
+    // First, check if game_state column exists
+    const checkColumn = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'games' AND column_name = 'game_state'
+      )`);
+
+    const hasGameStateColumn = checkColumn.rows[0].exists;
+
+    // Build the query dynamically based on column existence
+    const selectFields = [
+      "game_id",
+      "start_time",
+      "end_time",
+      "winner_name",
+      "winner_score",
+      "total_players",
+      "total_rounds",
+      "creator_username",
+      "COALESCE(player_results, '[]'::jsonb) as players",
+    ];
+
+    if (hasGameStateColumn) {
+      selectFields.push(`COALESCE(game_state->>'settings', '{}') as settings`);
+    } else {
+      selectFields.push(`'{}'::jsonb as settings`);
+    }
+
+    const query = {
+      text: `
+        SELECT ${selectFields.join(", ")}
+        FROM games
+        WHERE is_active = false
+        ORDER BY end_time DESC
+        LIMIT $1
+      `,
+      values: [limit],
+    };
+
+    const result = await client.query(query);
+
+    // Transform the data to match the expected format
+    return result.rows.map(
+      (row): GameHistoryRow => ({
+        game_id: row.game_id,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        winner_name: row.winner_name,
+        winner_score: row.winner_score,
+        total_players: row.total_players,
+        total_rounds: row.current_round,
+        creator_username: row.creator_username,
+        players: row.players || [],
+        settings: row.settings
+          ? typeof row.settings === "string"
+            ? JSON.parse(row.settings)
+            : row.settings
+          : {},
+      })
     );
-    return result.rows;
   } catch (error) {
     console.error("Failed to fetch game history:", error);
     throw error;

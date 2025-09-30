@@ -10,13 +10,13 @@ export type GameResult = {
   winner_name: string;
   winner_score: number;
   total_players: number;
+  creator_username?: string;
   players: PlayerResult[];
 };
 
 export type PlayerResult = {
   player_name: string;
   final_score: number;
-  final_position: number | null;
   tricks_landed: number;
   tricks_attempted: number;
   final_letters?: string;
@@ -25,74 +25,54 @@ export type GameWithDetails = GameResult & {
   players: PlayerResult[];
 };
 
-// Get a list of recent games
 export async function getRecentGames(limit = 10): Promise<GameResult[]> {
   "use server";
 
   const client = await pool.connect();
   try {
-    // First, get the list of recent games
+    // Get the list of recent games with their player results
     const gamesResult = await client.query<GameResult>(
       `SELECT 
-        g.game_id,
-        g.start_time,
-        g.end_time,
-        g.total_rounds,
-        g.winner_name,
-        g.winner_score,
-        g.total_players
-      FROM games g
-      ORDER BY g.end_time DESC 
+        game_id,
+        start_time,
+        end_time,
+        total_rounds,
+        winner_name,
+        winner_score,
+        total_players,
+        creator_username,
+        player_results as players
+      FROM games 
+      WHERE end_time IS NOT NULL
+      ORDER BY end_time DESC 
       LIMIT $1`,
       [limit]
     );
 
-    // If no games found, return empty array
-    if (gamesResult.rows.length === 0) {
-      return [];
-    }
-
-    // Get all game IDs to fetch player results in a single query
-    const gameIds = gamesResult.rows.map((game) => game.game_id);
-
-    // Fetch all player results for these games
-    const playersResult = await client.query(
-      `SELECT 
-        game_id,
-        player_name,
-        final_score,
-        final_position,
-        tricks_landed,
-        tricks_attempted,
-        final_letters
-      FROM player_results 
-      WHERE game_id = ANY($1)
-      ORDER BY final_position NULLS LAST`,
-      [gameIds]
-    );
-
-    // Group players by game_id
-    const playersByGameId = playersResult.rows.reduce((acc, player) => {
-      const gameId = player.game_id;
-      if (!acc[gameId]) {
-        acc[gameId] = [];
-      }
-      acc[gameId].push({
+    // Process each game's player results
+    const gamesWithPlayers = gamesResult.rows.map(game => {
+      // Process player results from JSONB
+      const players: PlayerResult[] = game.players || [];
+      const processedPlayers = players.map(player => ({
         player_name: player.player_name,
-        final_score: player.final_score,
-        final_position: player.final_position,
-        tricks_landed: player.tricks_landed,
-        tricks_attempted: player.tricks_attempted,
+        final_score: player.final_score || 0,
+        tricks_landed: player.tricks_landed || 0,
+        tricks_attempted: player.tricks_attempted || 0,
         final_letters: player.final_letters?.toString() || "",
-      });
-      return acc;
-    }, {} as Record<string, PlayerResult[]>);
+      }));
 
-    // Merge game data with player data
-    const gamesWithPlayers = gamesResult.rows.map((game) => ({
-      ...game,
-      players: playersByGameId[game.game_id] || [],
-    }));
+      return {
+        game_id: game.game_id,
+        start_time: game.start_time,
+        end_time: game.end_time,
+        total_rounds: game.total_rounds,
+        winner_name: game.winner_name,
+        winner_score: game.winner_score,
+        total_players: game.total_players,
+        creator_username: game.creator_username,
+        players: processedPlayers
+      };
+    });
 
     return gamesWithPlayers;
   } catch (error) {
@@ -103,7 +83,7 @@ export async function getRecentGames(limit = 10): Promise<GameResult[]> {
   }
 }
 
-// Get detailed game data including players without caching
+// Get detailed game data including players
 export async function getGameDetails(
   gameId: string
 ): Promise<GameWithDetails | null> {
@@ -111,9 +91,25 @@ export async function getGameDetails(
 
   const client = await pool.connect();
   try {
-    // Always fetch fresh game data from the database
+    // Fetch the game data
     const gameResult = await client.query(
-      `SELECT * FROM games WHERE game_id = $1`,
+      `SELECT 
+        game_id,
+        start_time,
+        end_time,
+        player_results as players,
+        game_state,
+        winner_name,
+        winner_score,
+        total_players,
+        total_rounds,
+        current_round,
+        is_active,
+        creator_username,
+        created_at,
+        updated_at
+      FROM games 
+      WHERE game_id = $1`,
       [gameId]
     );
 
@@ -121,30 +117,34 @@ export async function getGameDetails(
       return null;
     }
 
-    // Always fetch fresh player results for this game
-    const playersResult = await client.query(
-      `SELECT 
-        player_name,
-        final_score,
-        final_position,
-        tricks_landed,
-        tricks_attempted,
-        final_letters
-      FROM player_results 
-      WHERE game_id = $1
-      ORDER BY final_position NULLS LAST`,
-      [gameId]
-    );
-
-    // Ensure final_letters is a string and handle null/undefined cases
-    const processedPlayers = playersResult.rows.map((player) => ({
+    const game = gameResult.rows[0];
+    
+    // Process player results from JSONB
+    const players: PlayerResult[] = game.players || [];
+    const processedPlayers = players.map(player => ({
       ...player,
+      // Ensure all required fields have default values
       final_letters: player.final_letters?.toString() || "",
+      tricks_landed: player.tricks_landed || 0,
+      tricks_attempted: player.tricks_attempted || 0,
+      final_score: player.final_score || 0
     }));
 
+    // Extract game state if needed
+    const gameState = game.game_state || {};
+
     return {
-      ...gameResult.rows[0],
+      game_id: game.game_id,
+      start_time: game.start_time,
+      end_time: game.end_time,
+      total_rounds: game.total_rounds,
+      winner_name: game.winner_name,
+      winner_score: game.winner_score,
+      total_players: game.total_players,
+      creator_username: game.creator_username,
       players: processedPlayers,
+      // Include any additional fields from game_state if needed
+      ...gameState
     };
   } catch (error) {
     console.error("Error in getGameDetails:", error);
@@ -168,18 +168,35 @@ export async function getPlayerStats(playerName: string): Promise<PlayerStats> {
 
   const client = await pool.connect();
   try {
+    // Get all games where the player participated
     const result = await client.query(
-      `SELECT 
-            COUNT(*) as games_played,
-            SUM(CASE WHEN player_name = winner_name THEN 1 ELSE 0 END) as games_won,
-            AVG(final_score) as avg_score,
-            SUM(tricks_landed) as total_tricks_landed,
-            SUM(tricks_attempted) as total_tricks_attempted
-          FROM player_results
-          WHERE player_name = $1`,
-      [playerName]
+      `WITH player_games AS (
+        SELECT 
+          jsonb_array_elements(player_results) as player_data,
+          winner_name
+        FROM games
+        WHERE player_results @> $1::jsonb
+      )
+      SELECT 
+        COUNT(*) as games_played,
+        SUM(CASE WHEN (player_data->>'player_name') = winner_name THEN 1 ELSE 0 END) as games_won,
+        AVG((player_data->>'final_score')::numeric) as avg_score,
+        COALESCE(SUM((player_data->>'tricks_landed')::integer), 0) as total_tricks_landed,
+        COALESCE(SUM((player_data->>'tricks_attempted')::integer), 0) as total_tricks_attempted
+      FROM player_games
+      WHERE player_data->>'player_name' = $2`,
+      [JSON.stringify([{ player_name: playerName }]), playerName]
     );
-    return (result.rows[0] as PlayerStats) || null;
+    
+    // Ensure we return default values if no games found
+    const stats = result.rows[0] || {};
+    return {
+      games_played: Number(stats.games_played) || 0,
+      games_won: Number(stats.games_won) || 0,
+      avg_score: Number(stats.avg_score) || 0,
+      total_tricks_landed: Number(stats.total_tricks_landed) || 0,
+      total_tricks_attempted: Number(stats.total_tricks_attempted) || 0
+    };
   } finally {
     client.release();
   }

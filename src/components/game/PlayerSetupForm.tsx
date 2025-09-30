@@ -228,9 +228,8 @@ export function PlayerSetupForm({
             )}
           </AnimatePresence>
 
-          <CardContent className="space-y-4">
-
-            <div className="flex flex-col gap-2 pt-2">
+          <CardContent >
+            <div className="flex flex-col gap-2 pb-2.5">
               <Button
                 onClick={() => onStartGame(initialPlayers, username)}
 
@@ -357,7 +356,7 @@ export function PlayerSetupForm({
             <div className="relative">
               <div
                 ref={scrollContainerRef}
-                className="grid grid-flow-row auto-rows-min gap-1.5 sm:grid-cols-2 overflow-y-auto minimal-scrollbar max-h-[30rem] h-[20rem] content-start"
+                className="grid grid-flow-row auto-rows-min gap-1.5 sm:grid-cols-2 overflow-y-auto minimal-scrollbar max-h-[30rem] h-[20rem] content-start pt-2"
               >
                 {/* Render actual player inputs */}
                 {initialPlayers.map((name, i) => {
@@ -391,7 +390,8 @@ export function PlayerSetupForm({
                         showSuccess={showSuccess}
                         inputRef={el => inputRefs.current[i] = el}
                         className="rounded-md flex-1"
-                        isCreator={name === username}
+                        creatorIndex={initialPlayers.findIndex(p => p === username)}
+                        currentIndex={i}
                       />
                     </motion.div>
                   );

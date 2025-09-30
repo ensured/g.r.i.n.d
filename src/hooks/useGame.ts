@@ -29,13 +29,6 @@ export function useGame() {
     if (!state.isGameOver || !state.winner || !state.endTime) return;
 
     try {
-      console.log("Saving game results:", {
-        winner: state.winner.name,
-        duration: state.endTime.getTime() - state.startTime!.getTime(),
-        players: state.players.length,
-        endTime: state.endTime.toISOString(),
-      });
-
       await saveGameResults(state);
       toast.success("Game results saved!");
     } catch (error) {
