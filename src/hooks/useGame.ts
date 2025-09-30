@@ -182,14 +182,21 @@ export function useGame() {
     [playerNames.length, handlePlayerNameChange]
   );
 
-  // Handle clearing all players - keeps only the first player
+  // Handle clearing all players - keeps only the current user's profile as player[0]
   const handleClearAllPlayers = useCallback(() => {
-    setPlayerNames((prevNames) =>
-      prevNames.length > 0 && prevNames[0] !== "Player1"
-        ? [prevNames[0]]
-        : [MESSAGES.DEFAULT_PLAYER_NAME(0)]
-    );
-  }, []);
+    setPlayerNames((prevNames) => {
+      // If we have a profile with a username, use that as the first player
+      if (profile?.username) {
+        return [profile.username];
+      }
+      // Otherwise keep the first player if it exists and isn't the default name
+      if (prevNames.length > 0 && prevNames[0] !== MESSAGES.DEFAULT_PLAYER_NAME(0)) {
+        return [prevNames[0]];
+      }
+      // Fallback to default name
+      return [MESSAGES.DEFAULT_PLAYER_NAME(0)];
+    });
+  }, [profile?.username]);
 
   // Generate a cryptographically secure random number in range [0, max)
   const getCryptoRandom = (max: number) => {
