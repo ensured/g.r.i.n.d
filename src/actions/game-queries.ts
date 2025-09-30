@@ -1,60 +1,6 @@
 "use server";
 
 import pool from "@/lib/db";
-import { unstable_cache, revalidateTag } from "next/cache";
-
-const CACHE_DURATION = 3600; // 1 hour in seconds
-
-// Cache status tracking
-interface CacheStats {
-  hits: number;
-  misses: number;
-  lastUpdated: string;
-}
-
-const cacheStats: CacheStats = {
-  hits: 0,
-  misses: 0,
-  lastUpdated: new Date().toISOString(),
-};
-
-// Helper function to log cache status
-function logCacheStatus(key: string, type: "hit" | "miss") {
-  const now = new Date().toISOString();
-  if (type === "hit") cacheStats.hits++;
-  if (type === "miss") cacheStats.misses++;
-  cacheStats.lastUpdated = now;
-
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[${now}] Cache ${type.toUpperCase()}: ${key}`);
-    console.log(
-      `Cache Stats - Hits: ${cacheStats.hits}, Misses: ${cacheStats.misses}`
-    );
-  }
-}
-
-// Function to check cache status
-export async function getCacheStatus() {
-  return {
-    ...cacheStats,
-    hitRate:
-      cacheStats.hits + cacheStats.misses > 0
-        ? (
-            (cacheStats.hits / (cacheStats.hits + cacheStats.misses)) *
-            100
-          ).toFixed(2) + "%"
-        : "N/A",
-  };
-}
-
-// Function to clear specific cache
-export async function clearCache(tag: string) {
-  revalidateTag(tag);
-  return {
-    status: "success",
-    message: `Cache cleared for ${tag} at ${new Date().toISOString()}`,
-  };
-}
 
 export type GameResult = {
   game_id: string;
@@ -79,7 +25,7 @@ export type GameWithDetails = GameResult & {
   players: PlayerResult[];
 };
 
-// Get a list of recent games without caching
+// Get a list of recent games
 export async function getRecentGames(limit = 10): Promise<GameResult[]> {
   "use server";
 
@@ -107,8 +53,8 @@ export async function getRecentGames(limit = 10): Promise<GameResult[]> {
     }
 
     // Get all game IDs to fetch player results in a single query
-    const gameIds = gamesResult.rows.map(game => game.game_id);
-    
+    const gameIds = gamesResult.rows.map((game) => game.game_id);
+
     // Fetch all player results for these games
     const playersResult = await client.query(
       `SELECT 
@@ -137,15 +83,15 @@ export async function getRecentGames(limit = 10): Promise<GameResult[]> {
         final_position: player.final_position,
         tricks_landed: player.tricks_landed,
         tricks_attempted: player.tricks_attempted,
-        final_letters: player.final_letters?.toString() || ""
+        final_letters: player.final_letters?.toString() || "",
       });
       return acc;
     }, {} as Record<string, PlayerResult[]>);
 
     // Merge game data with player data
-    const gamesWithPlayers = gamesResult.rows.map(game => ({
+    const gamesWithPlayers = gamesResult.rows.map((game) => ({
       ...game,
-      players: playersByGameId[game.game_id] || []
+      players: playersByGameId[game.game_id] || [],
     }));
 
     return gamesWithPlayers;

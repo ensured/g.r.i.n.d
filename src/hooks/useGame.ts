@@ -29,13 +29,13 @@ export function useGame() {
     if (!state.isGameOver || !state.winner || !state.endTime) return;
 
     try {
-      console.log('Saving game results:', {
+      console.log("Saving game results:", {
         winner: state.winner.name,
         duration: state.endTime.getTime() - state.startTime!.getTime(),
         players: state.players.length,
-        endTime: state.endTime.toISOString()
+        endTime: state.endTime.toISOString(),
       });
-      
+
       await saveGameResults(state);
       toast.success("Game results saved!");
     } catch (error) {
@@ -44,23 +44,17 @@ export function useGame() {
     }
   }, []);
 
-  // Listen for game end events
+  // Check for game over state after each update
   useEffect(() => {
-    const handleGameEnd = (e: CustomEvent) => {
-      console.log('Game end event received:', e.detail);
-      if (gameState && !gameState.isGameOver) {
-        const updatedState = { ...gameState, isGameOver: true, endTime: e.detail.endTime };
-        setGameState(updatedState);
-        saveGame(updatedState);
-      }
-    };
-
-    // @ts-ignore - CustomEvent is not in the lib.dom.d.ts
-    window.addEventListener('game:end', handleGameEnd);
-    return () => {
-      // @ts-ignore
-      window.removeEventListener('game:end', handleGameEnd);
-    };
+    if (gameState && !gameState.isGameOver && gameState.winner) {
+      const updatedState = {
+        ...gameState,
+        isGameOver: true,
+        endTime: new Date(),
+      };
+      setGameState(updatedState);
+      saveGame(updatedState);
+    }
   }, [gameState, saveGame]);
 
   // Handle player's attempt

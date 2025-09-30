@@ -5,22 +5,16 @@ import { GameState } from '@/types/types';
 import { Button } from '../ui/button';
 import { PlayIcon, XIcon } from 'lucide-react';
 
-export function Timer({ gameState }: { gameState: GameState }) {
+export function Timer({ gameState }: { gameState: GameState | null }) {
   console.log('GameTimer - gameState:', gameState);
   const [duration, setDuration] = useState<string>('00:00');
   const [isVisible, setIsVisible] = useState<boolean>(true);
 
-  // Handle undefined or null gameState
-  if (!gameState) {
-    console.log('GameTimer - No game state, not rendering');
-    return null;
-  }
-
-  const isRunning = gameState.gameStarted && !gameState.isGameOver && gameState.startTime !== null;
+  const isRunning = gameState?.gameStarted && !gameState?.isGameOver && gameState?.startTime !== null;
 
   // Update timer every second when game is running
   useEffect(() => {
-    if (!isRunning || !gameState.startTime) return;
+    if (!isRunning || !gameState?.startTime) return;
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -34,11 +28,11 @@ export function Timer({ gameState }: { gameState: GameState }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, gameState.startTime]);
+  }, [isRunning, gameState?.startTime]);
 
-  // Only render if game has started and has a start time
-  if (!gameState.gameStarted || !gameState.startTime) {
-    console.log('GameTimer - Game not started or no start time, not rendering');
+  // Handle undefined or null gameState or invalid game state
+  if (!gameState || !gameState.gameStarted || !gameState.startTime) {
+    console.log('GameTimer - Invalid game state, not rendering');
     return null;
   }
 

@@ -84,7 +84,7 @@ export function GameOverDialog({ isOpen, onNewGame, onSetupNewGame, winner, play
 
             return () => clearInterval(interval);
         }
-    }, [isOpen, winner?.id]); // Only re-run if winner changes
+    }, [isOpen, winner]); // Only re-run if winner changes
 
     return (
         <AlertDialog open={isOpen}>

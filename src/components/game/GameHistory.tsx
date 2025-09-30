@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getRecentGames, getGameDetails } from '@/actions/game-queries';
+import { getGameDetails } from '@/actions/game-queries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatDistanceToNow, intervalToDuration } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Clock3, Trophy, Target, Loader2, Award, Clock } from "lucide-react";
 import { SkateLetters } from "./skate-letters";
 import { GameResult, PlayerResult } from "@/actions/game-queries";
@@ -66,7 +66,6 @@ export interface GameHistoryProps {
 function GameHistory({ games: initialGames }: GameHistoryProps) {
     const [games, setGames] = useState<GameResult[]>(initialGames);
     const [selectedGame, setSelectedGame] = useState<GameResult | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
     // Update local state if the prop changes
     useEffect(() => {
@@ -75,7 +74,6 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
 
     const handleGameSelect = async (gameId: string) => {
         try {
-            setIsLoading(true);
             const gameDetails = await getGameDetails(gameId);
             if (gameDetails) {
                 setSelectedGame(prev => ({
@@ -85,8 +83,6 @@ function GameHistory({ games: initialGames }: GameHistoryProps) {
             }
         } catch (error) {
             console.error('Failed to load game details:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
